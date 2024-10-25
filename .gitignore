@@ -9,3 +9,6 @@ pyclib.dSYM/
 
 #Ignore C executables
 .out
+
+#Ignore test.py
+test.py
