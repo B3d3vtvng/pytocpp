@@ -64,6 +64,15 @@ class BoolNode(ASTNode):
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
         return f"BoolNode[\n{tab_offset}    Value: {self.value}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class NoneNode(ASTNode):
+    def __init__(self) -> None:
+        super().__init__()
+        self.type = "none"
+
+    def __repr__(self) -> str:
+        tab_offset = "    " * self.repr_offset
+        return f"NoneNode[\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ArrayNode(ASTNode):
     def __init__(self) -> None:
@@ -125,7 +134,7 @@ class AssignNode(ASTNode):
         self.name = name
         self.value = None
         self.type = None
-        self.children_types = None
+        self.children_types = []
 
     def __repr__(self) -> str:
         if self.value:
@@ -140,10 +149,6 @@ class BinOpNode(ASTNode):
         self.op = op
         self.right = None
         self.type = None
-
-    def set_type(self, type: str) -> None:
-        self.type = type
-        return None
 
     def __repr__(self) -> str:
         if self.left:
@@ -168,7 +173,7 @@ class UnOpNode(ASTNode):
         if self.right:
             self.right.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
-        return f"UnOpNode[\n{tab_offset}    Right[\n{tab_offset}        {self.right}\n{tab_offset}    ] \n{tab_offset}    Operator: '{self.op}'\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"UnOpNode[\n{tab_offset}    Operator: '{self.op}'\n{tab_offset}    Right[\n{tab_offset}        {self.right}\n{tab_offset}    ] \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class ConditionExpressionNode(ASTNode):
     def __init__(self, op: str) -> None:
@@ -203,7 +208,7 @@ class FuncDefNode(ASTNode):
         self.arg_names = arg_names
         self.arg_types = None
         self.unparsed_children = None
-        self.children = None
+        self.children = []
         self.func_call_nodes = None
         self.var_identifier_dict = {}
         self.return_type = None
@@ -240,7 +245,7 @@ class FuncCallNode(ASTNode):
     def __init__(self, name: str) -> None:
         super().__init__()
         self.name = name
-        self.args = None
+        self.args = []
         self.type = None
 
     def __repr__(self) -> str:
@@ -261,7 +266,7 @@ class ForLoopNode(ASTNode):
         self.iter_var_name = iter_var_name
         self.iter_var_type = None
         self.iter = None
-        self.children = None
+        self.children = []
 
     def __repr__(self) -> str:
         if self.iter:
@@ -284,7 +289,7 @@ class WhileLoopNode(ASTNode):
         super().__init__()
         self.condition = None
         self.condition_type = "bool"
-        self.children = None
+        self.children = []
 
     def __repr__(self) -> str:
         if self.condition:
@@ -310,7 +315,7 @@ class IfNode(ASTNode):
         super().__init__()
         self.condition = None
         self.condition_type = "bool"
-        self.children = None
+        self.children = []
 
     def __repr__(self) -> str:
         repr_res = WhileLoopNode.__repr__(self)
@@ -322,8 +327,8 @@ class ElifNode(ASTNode):
         super().__init__()
         self.condition = None
         self.condition_type = "bool"
-        self.prev_conditions = None
-        self.children = None
+        self.prev_conditions = []
+        self.children = []
 
     def __repr__(self) -> str:
         if self.condition:
@@ -347,8 +352,8 @@ class ElseNode(ASTNode):
         super().__init__()
         self.condition = None
         self.condition_type = "bool"
-        self.prev_conditions = None
-        self.children = None
+        self.prev_conditions = []
+        self.children = []
         
     def __repr__(self) -> str:
         self_repr = ElifNode.__repr__(self)
@@ -389,10 +394,10 @@ class AST():
         parent_node = self.cur_node.parent
         cur_node_idx = parent_node.children.index(self.cur_node)
         if cur_node_idx == 0:
-            return None
+            return -1
         self.cur_node = parent_node.children[cur_node_idx-1]
         self.cur_node.parent = parent_node
-        return None
+        return 0
 
     def detraverse_node(self) -> None:
         self.cur_node = self.cur_node.parent
@@ -419,19 +424,11 @@ class AST():
         node.id = self.next_free_id
         self.next_free_id += 1
 
-        if type == "children":
-            if not self.cur_node.children:
-                self.cur_node.children = []
-            self.cur_node.__setattr__(type, self.cur_node.children + [node])
-            return node.id
-        
-        if type == "args":
-            if not self.cur_node.args:
-                self.cur_node.args = []
-            self.cur_node.__setattr__("args", self.cur_node.args + [node])
-            return node.id
-
-        self.cur_node.__setattr__(type, node)
+        cur_value = self.cur_node.__getattribute__(type)
+        if isinstance(cur_value, list):
+            self.cur_node.__setattr__(type, cur_value + [node])
+        else:
+            self.cur_node.__setattr__(type, node)
         return node.id
     
     def get_parent_node(self, searched_node: ASTNode) -> ASTNode:

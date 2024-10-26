@@ -6,6 +6,7 @@ TOKEN_TYPES = {
     "FLOAT": ("TT_FLOAT", ""),
     "INT": ("TT_INT", ""),
     "STR": ("TT_str", ""),
+    "NONE": ("TT_none", "None"),
     "IDENTIFIER": ("TT_identifier", ""),
     "CMND": ("TT_cmnd", "#"), 
     "LPAREN": ("TT_lparen", "("),

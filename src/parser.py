@@ -11,6 +11,7 @@ from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITI
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
 from src.utils.py_utils.allowed_type_constants import *
+from src.utils.py_utils.build_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES
 from src.nodes import *
 from src.lexer import get_token_ident
 
@@ -45,7 +46,7 @@ class Parser():
         self.error = None
         self.tokens = tokens
         self.file_n = file_n
-        self.func_identifier_dict = {}
+        self.func_identifier_dict = BUILT_IN_FUNC_DICT.copy()
         self.var_identifier_dict = {}
         self.indentation = None
         self.cur_block_indentation = None
@@ -181,6 +182,9 @@ class Parser():
             self.error = SyntaxError("Expected identifier", cur_ln_num, self.file_n)
             return -1
         func_identifier, line = line[0].token_v, line[1:]
+        if func_identifier in BUILT_IN_FUNC_NAMES:
+            self.error = NameError(f"Cannot overwrite built-in function {func_identifier}()", cur_ln_num, self.file_n)
+            return -1
         if line[0].token_t != "TT_lparen" or line[len(line)-1].token_t != "TT_rparen":
             self.error = SyntaxError("Expected parenthesis", cur_ln_num, self.file_n)
             return -1
@@ -318,7 +322,8 @@ class Parser():
                 self.error = SyntaxError("Expected conditional statement before 'else/elif'", line[0].ln, self.file_n)
                 return -1
         line = line[1:len(line)-2]
-        if self.parse_expression(line, "condition", cur_ln_num, expr_4=False) == -1: return -1
+        if not isinstance(self.ast.cur_node, ElseNode):
+            if self.parse_expression(line, "condition", cur_ln_num, expr_4=False) == -1: return -1
         child_count = self.parse_children(cur_line_indentation, rem_line_tokens)
         self.ast.detraverse_node()
         return child_count
@@ -409,18 +414,19 @@ class Parser():
             arg_types.append(arg_type)
         last_func_def_node = self.func_identifier_dict[name]
         if len(arg_exprs) != len(last_func_def_node.arg_names):
-            self.error = TypeError(f"{name}() takes {len(self.ast.cur_node.arg_names)} arguments but {len(arg_exprs)} were given!", cur_ln_num, self.file_n)
+            self.error = TypeError(f"{name}() takes {len(last_func_def_node.arg_names)} arguments but {len(arg_exprs)} were given!", cur_ln_num, self.file_n)
             return -1
         if last_func_def_node.func_call_nodes:
             last_func_def_node.func_call_nodes.append(new_node)
         else:
             last_func_def_node.func_call_nodes = [new_node]
-        if not last_func_def_node.children:
+        if not last_func_def_node.children and name not in BUILT_IN_FUNC_NAMES:
             if self.parse_func_def_children(arg_types, last_func_def_node, new_node) == -1: return -1
         else:
-            if arg_types != last_func_def_node.arg_types:
-                self.error = TypeError("Invalidly typed function arguments", cur_ln_num, self.file_n)
-                return -1
+            for i in range(len(arg_types)):
+                if not self.is_valid_type(arg_types[i], last_func_def_node.arg_types[i]):
+                    self.error = TypeError("Invalidly typed function arguments", cur_ln_num, self.file_n)
+                    return -1
         self.ast.detraverse_node()
         return 0
     
@@ -553,7 +559,7 @@ class Parser():
         """
         tokens = [token for token in tokens if token.token_t != "TT_eol"]
         no_tokens = True if not tokens else False
-        if tokens[0].token_t == "TT_lparen" and tokens[-1].token_t == "TT_rparen":
+        if not no_tokens and tokens[0].token_t == "TT_lparen" and tokens[-1].token_t == "TT_rparen":
             tokens = tokens[1:-1]
         if not tokens or no_tokens:
             self.error = SyntaxError("Invalid Expression", ln_num, self.file_n)
@@ -887,6 +893,9 @@ class Parser():
         if token.token_t == "TT_str":
             self.ast.append_node(StringNode(token.token_v), traversal_type)
             return ("str",)
+        if token.token_t == "TT_none":
+            self.ast.append_node(NoneNode(), traversal_type)
+            return ("none",)
         if token.token_t == "TT_identifier":
             cur_var_identifier_dict = self.get_cur_scope_var_dict()
             if token.token_v not in cur_var_identifier_dict.keys():
@@ -1118,7 +1127,7 @@ class Parser():
 
         Returns -1 on error, otherwise the amount of lines in the statement body and the lines of tokens representing the body
         """
-        if child_line_tokens == []:
+        if not child_line_tokens:
             self.error = SyntaxError("Expected Block after statement", self.tokens[-1].ln-1, self.file_n)
             return -1
         cur_indentation = None
@@ -1177,8 +1186,8 @@ class Parser():
         if not tokens: return [tokens]
         line_tokens = []
         highest_line_number = tokens[len(tokens)-1].ln
-        for i in range(0, highest_line_number+1):
+        for i in range(1, highest_line_number+1):
             line = [token for token in tokens if token.ln == i and token.token_t not in ("TT_squote", "TT_dquote")]
-            if line[0].token_t != "TT_eol":
-                line_tokens.append(line)
+            if not line or len(line) < 2 or (line[0].token_t == "TT_pind" and line[1].token_t == "TT_eol"): continue
+            line_tokens.append(line)
         return line_tokens
