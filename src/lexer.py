@@ -124,7 +124,7 @@ class Lexer():
                 token_name, token_ident = TOKEN_TYPES[token_type]
 
                 token_idx = new_line.index(token_ident) + token_end_idx
-                token = self.make_kw_token(ln_index+1, token_idx, new_line, token_ident, token_name, is_keyword=self.is_keyword(token_ident))
+                token = self.make_kw_token(ln_index+1, token_idx, new_line, token_ident, token_name)
                 if not token: continue
 
                 new_token_end_idx = token_end_idx + new_line.index(token_ident)+len(token_ident)
