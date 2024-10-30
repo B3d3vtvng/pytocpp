@@ -396,7 +396,7 @@ class Lexer():
         Returns None if the to-be token is an invalid keyword, otherwise the new token
         """
         if self.is_keyword(token_ident):
-            if not self.validate_keyword(token_ident, line.index(token_ident), line): return None
+            if not self.validate_keyword(token_ident, line): return None
         return Token(ln_num, token_idx, token_name, None)
 
     def is_keyword(self, token_ident: str) -> bool:
