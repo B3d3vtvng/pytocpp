@@ -11,7 +11,7 @@ from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITI
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
 from src.utils.py_utils.allowed_type_constants import *
-from src.utils.py_utils.build_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
+from src.utils.py_utils.built_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
 from src.nodes import *
 from src.lexer import get_token_ident
 
@@ -258,6 +258,8 @@ class Parser():
             self.error = TypeError(f"Object of type '{expr_type} is not iterable'", cur_ln_num, self.file_n)
             return -1
         self.ast.append_node(AssignNode(iter_var_name))
+        self.ast.cur_node.children[0].type = list(set(self.get_array_types()))
+        print(self.ast.cur_node.children[0].type)
         parent_node = self.ast.get_parent_node(FuncDefNode)
         if parent_node == -1:
             self.var_identifier_dict[iter_var_name] = self.ast.cur_node.children[0]
@@ -536,12 +538,10 @@ class Parser():
         if parent_if_node != -1 and var_type != self.var_identifier_dict[name].type:
             self.error = TypeError(f"Cannot assign value of a different type to variable '{name}' inside of an if-statement", cur_ln_num, self.file_n)
             return -1
-        if self.is_valid_type(var_type, ("list",)):
-            self.ast.traverse_node("value")
-            self.ast.cur_node.children_types = self.get_array_types()
+        if self.is_valid_type(var_type, ("list",)) and self.ast.cur_node.value.children:
+            self.ast.cur_node.children_types = tuple(set([child.type for child in self.ast.cur_node.value.children]))
             if self.ast.cur_node.children_types == -1:
                 return -1
-            self.ast.detraverse_node()
         self.ast.cur_node.type = var_type
         cur_var_identifier_dict = self.get_cur_scope_var_dict()
         cur_var_identifier_dict[line[0].token_v] = self.ast.cur_node
@@ -1028,7 +1028,7 @@ class Parser():
         array_nodes = self.get_iter_nodes()
         self.ast.cur_node = cur_node
         if array_nodes == -1: return -1
-        if isinstance(array_nodes, tuple):
+        if not isinstance(array_nodes[0], ASTNode):
             return array_nodes
         types = []
         for array_node in array_nodes:

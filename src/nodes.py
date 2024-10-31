@@ -197,7 +197,7 @@ class AssignNode(ASTNode):
         if self.value:
             self.value.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
-        return f"VarDecNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"AssignNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Type: {self.type}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class BinOpNode(ASTNode):
     def __init__(self, op: str) -> None:
@@ -346,7 +346,6 @@ class ForLoopNode(ASTNode):
         """
         super().__init__()
         self.iter_var_name = iter_var_name
-        self.iter_var_type = None
         self.iter = None
         self.children = []
 
