@@ -1,3 +1,7 @@
+"""
+Specifies the tokentypes and keyword tokentypes for the Lexer of the pytoc Python Transpiler
+"""
+
 TOKEN_TYPES = {
     "EOF": ("TT_eof", ""), 
     "EOL": ("TT_eol", ""),

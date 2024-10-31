@@ -1,3 +1,11 @@
+"""
+Implements the built-in functions for the pytoc Python Transpiler
+
+Creates a node for each function in the ast and specifies the expected type and the return type of the function
+Stores the names of the built-in functions in a constant
+Stores the node for each function in a constant for later use in parser.py
+"""
+
 from src.nodes import *
 
 temp_ast = AST()

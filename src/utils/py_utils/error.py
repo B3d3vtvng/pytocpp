@@ -1,5 +1,17 @@
+"""
+Errors for the pytoc Python Transpiler
+"""
+
 class Error():
     def __init__(self, error_t, error_v, error_ln, file_n):
+        """
+        Attributes:
+
+        error_t: The type of the error
+        error_v: The message displayed with the error
+        error_ln: The line where the error has occured
+        file_n: The name of the file where the error has occured
+        """
         self.error_t = error_t
         self.error_v = error_v
         self.error_ln = error_ln
@@ -10,6 +22,9 @@ class Error():
 
     
 class FileError(Error):
+    """
+    Error to describe errors concerning files
+    """
     def __init__(self, error_v: str, file_n: str) -> None:
         super().__init__("FileError", error_v, -1, file_n)
 
@@ -18,6 +33,9 @@ class FileError(Error):
 
     
 class FlagError():
+    """
+    Error to describe errors concerning invalid syntax in commandline arguments
+    """
     def __init__(self, error_t, error_v, flag):
         self.error_t = error_t
         self.error_v = error_v
@@ -28,17 +46,28 @@ class FlagError():
     
 
 class SyntaxError(Error):
+    """
+    Error to describe errors concerning syntax
+    """
     def __init__(self, error_v, error_ln, file_n):
         super().__init__("SyntaxError", error_v, error_ln, file_n)
     
 class IndentationError(Error):
+    """
+    Error to describe errors concerning Indentation"""
     def __init__(self, error_v: str, error_ln: int, file_n: str) -> None:
         super().__init__("IndentationError", error_v, error_ln, file_n)
 
 class TypeError(Error):
+    """
+    Error to describe errors concerning invalid types
+    """
     def __init__(self, error_v, error_ln, file_n) -> None:
         super().__init__("TypeError", error_v, error_ln, file_n)
 
 class NameError(Error):
+    """
+    Error to describe errors concerning undefined identifiers
+    """
     def __init__(self, error_v, error_ln, file_n) -> None:
         super().__init__("NameError", error_v, error_ln, file_n)

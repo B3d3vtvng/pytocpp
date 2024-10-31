@@ -12,9 +12,11 @@ def compile():
     file_n, flags = cmdl_handler.handle_args()
     if cmdl_handler.error:
         print(cmdl_handler.error)
-        exit(1)
+        return 1
     compiler = Compiler(file_n, flags)
     compiler.compile()
     print("Sucess!")
+    return 0
 
-compile()
+return_code = compile()
+exit(return_code)

@@ -1,3 +1,8 @@
+"""
+Specifies the precedence of operators for different types of expressions
+Also contains a map specifying which expression to check for in the Parser
+"""
+
 BINOP_OPERATOR_PRECEDENCE_DICT = {
     "TT_plus": 2,
     "TT_sub": 2,
