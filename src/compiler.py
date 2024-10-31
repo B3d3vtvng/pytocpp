@@ -61,11 +61,11 @@ class Compiler():
         lexer = Lexer(self.file_n)
         tokens = self.run_component(lexer, lexer.make_tokens, 2)
         parser = Parser(tokens, self.file_n)
-        ast = self.run_component(parser, parser.make_ast, 3)
-        print(ast)
-        ast_optimizer = ASTOptimizationPass(ast)
+        ast, func_identifier_dict = self.run_component(parser, parser.make_ast, 3)
+        ast_optimizer = ASTOptimizationPass(ast, func_identifier_dict)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
         code_generator = CodeGenerator(ast, self.new_file_n)
         self.run_component(code_generator, code_generator.generate_code, 5)
+        print(ast)
         return 0
 

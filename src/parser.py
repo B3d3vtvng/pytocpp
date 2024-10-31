@@ -57,7 +57,7 @@ class Parser():
         """
         if self.parse_block(self.tokens) == -1:
             return None
-        return self.ast
+        return self.ast, self.func_identifier_dict
     
     #################################General Parsing######################################
     
