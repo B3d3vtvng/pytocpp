@@ -33,10 +33,13 @@ class ASTBaseNode(ASTNode):
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
         child_str = f""
-        for child in self.children:
-            child.repr_offset = self.repr_offset + 2
-            child_str += f"\n{"    " * child.repr_offset}{child}"
-            child_str = child_str
+        if self.children:
+            for child in self.children:
+                child.repr_offset = self.repr_offset + 2
+                child_str += f"\n{"    " * child.repr_offset}{child}"
+                child_str = child_str
+        else:
+            child_str = f"\n        None"
         
         return f"Module[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
