@@ -1,3 +1,7 @@
+"""
+Contains constants specifying which types are valid for which kind of operation
+"""
+
 SLICE_EXPRESSION_ALLOWED_TYPES = ("int",)
 CONDITIONAL_EXPRESSION_LOGICAL_OPERATOR_ALLOWED_TYPES = ("bool",)
 CONDITIONAL_EXPRESSION_CONDTIONAL_OPERATOR_AllOWED_TYPES = ("int", "float")

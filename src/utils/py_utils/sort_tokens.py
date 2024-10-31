@@ -1,3 +1,7 @@
+"""
+Implements a functions that sorts tokens by line and index
+"""
+
 from src.utils.py_utils.tokens import Token
 
 def sort_tokens(tokens: list[Token]) -> list[Token]:
