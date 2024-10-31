@@ -44,4 +44,10 @@ BUILT_IN_FUNC_NAMES = [
 BUILT_IN_FUNC_DICT = {}
 for i in range(len(BUILT_IN_FUNC_NAMES)):
     BUILT_IN_FUNC_DICT[BUILT_IN_FUNC_NAMES[i]] = temp_ast.cur_node.children[i]
+
+VAR_ARG_BUILT_IN_FUNCS = [
+    "print",
+    "input",
+    "range"
+]
     

@@ -11,7 +11,7 @@ from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITI
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
 from src.utils.py_utils.allowed_type_constants import *
-from src.utils.py_utils.build_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES
+from src.utils.py_utils.build_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
 from src.nodes import *
 from src.lexer import get_token_ident
 
@@ -411,7 +411,8 @@ class Parser():
             if arg_type == -1: return -1
             arg_types.append(arg_type)
         last_func_def_node = self.func_identifier_dict[name]
-        if len(arg_exprs) != len(last_func_def_node.arg_names):
+        var_args = self.var_args_checking(name, arg_types)
+        if not var_args and len(arg_exprs) != len(last_func_def_node.arg_names):
             self.error = TypeError(f"{name}() takes {len(last_func_def_node.arg_names)} arguments but {len(arg_exprs)} were given!", cur_ln_num, self.file_n)
             return -1
         if last_func_def_node.func_call_nodes:
@@ -420,10 +421,10 @@ class Parser():
             last_func_def_node.func_call_nodes = [new_node]
         if not last_func_def_node.children and name not in BUILT_IN_FUNC_NAMES:
             if self.parse_func_def_children(arg_types, last_func_def_node, new_node) == -1: return -1
-        else:
+        elif not var_args:
             for i in range(len(arg_types)):
                 if not self.is_valid_type(arg_types[i], last_func_def_node.arg_types[i]):
-                    self.error = TypeError("Invalidly typed function arguments", cur_ln_num, self.file_n)
+                    self.error = TypeError(f"Invalidly typed function arguments: Expected: {last_func_def_node.arg_types[i]}, Given: {arg_types[i]}", cur_ln_num, self.file_n)
                     return -1
         self.ast.detraverse_node()
         return 0
@@ -522,10 +523,18 @@ class Parser():
         """
         cur_ln_num = line[0].ln
         line = line[:len(line)-1]
+        name = line[0].token_v
+        parent_if_node = self.ast.get_parent_node((IfNode, ElifNode, ElseNode))
+        if name not in self.var_identifier_dict.keys() and parent_if_node != -1:
+            self.error = NameError("Cannot assign new variable inside if-statement", cur_ln_num, self.file_n)
+            return -1
         new_node_id = self.ast.append_node(AssignNode(line[0].token_v))
         self.ast.traverse_node_by_id(new_node_id)
         var_type = self.parse_expression(line[2:], "value", cur_ln_num, expr_4 = False)
         if var_type == -1:
+            return -1
+        if parent_if_node != -1 and var_type != self.var_identifier_dict[name].type:
+            self.error = TypeError(f"Cannot assign value of a different type to variable '{name}' inside of an if-statement", cur_ln_num, self.file_n)
             return -1
         if self.is_valid_type(var_type, ("list",)):
             self.ast.traverse_node("value")
@@ -1189,3 +1198,21 @@ class Parser():
             if not line or len(line) < 2 or (line[0].token_t == "TT_pind" and line[1].token_t == "TT_eol"): continue
             line_tokens.append(line)
         return line_tokens
+    
+    def var_args_checking(self, name: str, arg_types) -> bool:
+        if name not in VAR_ARG_BUILT_IN_FUNCS:
+            return False
+        if name == "range":
+            if len(arg_types) < 1 or len(arg_types) > 3:
+                return False
+            for arg_type in arg_type:
+                if not self.is_valid_type(arg_type):
+                    return False
+            return True
+        if name == "input":
+            if len(arg_types) > 1:
+                return False
+            if len(arg_types) == 1 and not self.is_valid_type(arg_types[0], ("str",)):
+                return False
+        return True
+        
