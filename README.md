@@ -1,4 +1,4 @@
-# Transpiler from Python to C
+# Transpiler from Python to C++
 
 ## Content
 
