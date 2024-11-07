@@ -15,7 +15,6 @@ def compile():
         return 1
     compiler = Compiler(file_n, flags)
     compiler.compile()
-    print("Sucess!")
     return 0
 
 return_code = compile()

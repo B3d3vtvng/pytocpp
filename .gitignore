@@ -7,8 +7,7 @@ pyclib.dSYM/
 #Ignore all .vscode folders
 .vscode/
 
-#Ignore C executables
-.out
-
-#Ignore test.py
+#Ignore test files
 test.py
+test.cpp
+test.out
