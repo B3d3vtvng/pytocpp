@@ -12,6 +12,15 @@ DEFAULT_HEADER = [
     "using none = std::monostate;\n",
     "using value_t = std::variant<int, float, bool, std::string, std::vector<Value>, none>;\n",
     "\n",
+    "enum Compare{\n",
+    "    GREATER,\n",
+    "    LESS,\n",
+    "    GEQU,\n",
+    "    LEQU\n",
+    "};\n",
+    "\n",
+    "using cmp_t  = Compare;\n",
+    "\n",
     "class Value {\n",
     "private:\n",
     "    value_t value;\n",
@@ -65,9 +74,9 @@ HEADER_MODULES = [
     "vmod"
 ]
 
-VALUE_INSERT_LINE = 26
+VALUE_INSERT_LINE = 35
 
-RUNTIME_INSERT_LINE = 35
+RUNTIME_INSERT_LINE = 44
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",
@@ -78,10 +87,15 @@ OPERATOR_TO_MODULE_DICT = {
     "*": "vmul",
     "or": "vor",
     "-": "vsub",
-    "%": "vmod"
+    "%": "vmod",
+    "<": "vcompare",
+    ">": "vcompare",
+    "<=": "vcompare",
+    ">=": "vcompare"
 }
 
 BUILT_IN_FUNC_TO_MODULE_DICT = {
+    "int": "toint",
     "str": "tostr",
     "input": "vinput",
     "len": "vlen",

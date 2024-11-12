@@ -151,12 +151,7 @@ class Parser():
         return_type = self.parse_expression(line, "return_value", cur_ln_num, expr_4=False)
         if return_type == -1: return -1
         self.ast.cur_node.type = return_type
-        if not parent_node.return_type:
-            parent_node.return_type = return_type
-        else:
-            if not self.is_valid_type(parent_node.return_type, return_type):
-                self.error = TypeError("Functions can only return a single type", cur_ln_num, self.file_n)
-                return -1
+        parent_node.return_type = ()
         parent_node.return_nodes += [self.ast.cur_node]
         self.ast.detraverse_node()
         return 0
@@ -430,11 +425,6 @@ class Parser():
             last_func_def_node.func_call_nodes = [new_node]
         if not last_func_def_node.children and name not in BUILT_IN_FUNC_NAMES:
             if self.parse_func_def_children(arg_types, last_func_def_node, new_node) == -1: return -1
-        elif not var_args:
-            for i in range(len(arg_types)):
-                if not self.is_valid_type(arg_types[i], last_func_def_node.arg_types[i]):
-                    self.error = TypeError(f"Invalidly typed function arguments: Expected: {last_func_def_node.arg_types[i]}, Given: {arg_types[i]}", cur_ln_num, self.file_n)
-                    return -1
         self.ast.detraverse_node()
         return 0
     
@@ -533,17 +523,10 @@ class Parser():
         cur_ln_num = line[0].ln
         line = line[:len(line)-1]
         name = line[0].token_v
-        parent_if_node = self.ast.get_parent_node((IfNode, ElifNode, ElseNode))
-        if name not in self.var_identifier_dict.keys() and parent_if_node != -1:
-            self.error = NameError("Cannot assign new variable inside if-statement", cur_ln_num, self.file_n)
-            return -1
         new_node_id = self.ast.append_node(AssignNode(line[0].token_v))
         self.ast.traverse_node_by_id(new_node_id)
         var_type = self.parse_expression(line[2:], "value", cur_ln_num, expr_4 = False)
         if var_type == -1:
-            return -1
-        if parent_if_node != -1 and var_type != self.var_identifier_dict[name].type:
-            self.error = TypeError(f"Cannot assign value of a different type to variable '{name}' inside of an if-statement", cur_ln_num, self.file_n)
             return -1
         if var_type != () and self.is_valid_type(var_type, ("list",)):
             if isinstance(self.ast.cur_node.value, ArrayNode):

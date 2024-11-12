@@ -265,7 +265,7 @@ class CodeGenerator():
             self.include("vequ")
         if rt_func_name == "vequ":
             self.include("v_dequ")
-        if rt_func_name in ["tostr", "vprint"]:
+        if rt_func_name in ["tostr", "vprint", "vinput"]:
             self.include("v_tostr")
         self.module_dict[rt_func_name] = True
         return None
