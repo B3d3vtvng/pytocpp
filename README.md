@@ -5,7 +5,6 @@
 - Introduction
 - Features
 - Limitations
-- Contributing
 - Build process
 
 
@@ -50,12 +49,6 @@ This project has a lot of limitations as I have been very strict about keeping e
 - Limited built-in functions
 
 Please let me know if you notice any other limitations.
-
-
-## Contributing
-
-This Repository is currently not open for Contributing as it is a school project of mine and it will be plagiarism if I include any work that has not been done by myself. 
-This is going to change in Summer 2025 when I will have submitted my school project.
 
 
 ## Build process
