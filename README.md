@@ -4,8 +4,7 @@
 
 - Introduction
 - Features
-- Use Cases
-- Currently developed parts
+- Limitations
 - Contributing
 - Build process
 
@@ -36,14 +35,21 @@ Possible features in the future could be:
 I am not planning on implementing OOP features.
 
 
-## Use Cases
+## Limitations
 
-Possible use cases could be optimising simple but performance-critical functions by compiling them to C and including them as C functions into an existing Python file. Or just as a fun toy to play around with. If anyone has any other ideas on what this could be useful for, just make an issue and I will include it here.
+This project has a lot of limitations as I have been very strict about keeping everything as close to the original python as possible which leads to some problems. Limitations include:
 
+- No imports
+- No left side indexing (but I am planning to change that)
+- No double indexing
+- Runtime errors in the compiled executable
+- No declaring new variables inside of if-statements
+- No changing variable types inside of if-statements
+- Staticly typed function arguments and return types
+- No OOP features
+- Limited built-in functions
 
-## Currently developed parts
-
-I have already implemented and tested the Lexer and I am currently working on testing and debugging the Parser. When I get sick of coding 5 hours of Python everyday, I usually work on some header files implementing helper functions and structs to be included in the finished output file for easier work with the code generation process.
+Please let me know if you notice any other limitations.
 
 
 ## Contributing
@@ -54,4 +60,4 @@ This is going to change in Summer 2025 when I will have submitted my school proj
 
 ## Build process
 
-I am proud to say that the python part of this project has no dependencies. No extern libraries are used. For the C part of the project, a basic C compiler shoud do the job, in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. I will probably extend this section when I get to directly compiling a python file to a binary.
+I am proud to say that the python part of this project has close to no dependencies. The only extern libraries used are itertools and the c++ headers 'iostream', 'variant' and 'vector'. For the C++ part of the project, a basic C++ compiler shoud do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
