@@ -40,9 +40,9 @@ class Compiler():
 
         Takes the component, the target function and the error code if an error occures
 
-        Runs the given function
-        Checks if the error attribute of the component contains something
-        Prints the content of the error attribute and exits with the given error code if it does
+        Runs the given function\n
+        Checks if the error attribute of the component contains something\n
+        Prints the content of the error attribute and exits with the given error code if it does\n
 
         Otherwise returns the output of the function
         """
@@ -60,12 +60,16 @@ class Compiler():
         """
         lexer = Lexer(self.file_n)
         tokens = self.run_component(lexer, lexer.make_tokens, 2)
+        if "--show-tokens" in self.flags.keys():
+            print(tokens)
         parser = Parser(tokens, self.file_n)
         ast, func_identifier_dict = self.run_component(parser, parser.make_ast, 3)
         ast_optimizer = ASTOptimizationPass(ast, func_identifier_dict)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
+        if "--show-ast" in self.flags.keys():
+            print(ast)
         code_generator = CodeGenerator(ast, self.new_file_n)
-        self.run_component(code_generator, code_generator.generate_code, 5)
-        print(ast)
+        new_file_n = self.run_component(code_generator, code_generator.generate_code, 5)
+        print(f"Sucessfully compiled: {self.file_n} -> {new_file_n}")
         return 0
 

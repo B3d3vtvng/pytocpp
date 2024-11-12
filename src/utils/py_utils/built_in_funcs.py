@@ -50,4 +50,14 @@ VAR_ARG_BUILT_IN_FUNCS = [
     "input",
     "range"
 ]
+
+PY_TO_CPP_BUILT_IN_FUNC_DICT = {
+    "print": "RunTime::vprint",
+    "input": "RunTime::vinput",
+    "len": "RunTime::vlen",
+    "int": "RunTime::toint",
+    "str": "RunTime::tostr",
+    "float": "RunTime::tofloat",
+    "range": "RunTime::vrange"
+}
     

@@ -157,6 +157,7 @@ class ArrayVarNode(ASTNode):
         """
         super().__init__()
         self.name = name
+        self.element_count = None
         self.content = None
         self.type = "list"
 
@@ -195,6 +196,8 @@ class AssignNode(ASTNode):
         self.value = None
         self.type = None
         self.children_types = []
+        self.child_count = None
+        self.first_define = None
 
     def __repr__(self) -> str:
         if self.value:
@@ -282,7 +285,7 @@ class FuncDefNode(ASTNode):
         self.func_call_nodes = None
         self.var_identifier_dict = {}
         self.return_type = None
-        self.return_node = []
+        self.return_nodes = []
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -516,6 +519,17 @@ class AST():
         self.cur_node = parent_node.children[cur_node_idx-1]
         self.cur_node.parent = parent_node
         return 0
+    
+    def next_child_node(self, traverse_type: str = "children") -> int:
+        parent_node = self.cur_node.parent
+        target_attr = parent_node.__getattribute__(traverse_type)
+        cur_node_idx = target_attr.index(self.cur_node)
+        if cur_node_idx == len(target_attr)-1:
+            return -1
+        self.cur_node = target_attr[cur_node_idx+1]
+        self.cur_node.parent = parent_node
+        return 0
+
 
     def detraverse_node(self) -> None:
         """

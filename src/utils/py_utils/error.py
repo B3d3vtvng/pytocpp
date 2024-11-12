@@ -36,13 +36,12 @@ class FlagError():
     """
     Error to describe errors concerning invalid syntax in commandline arguments
     """
-    def __init__(self, error_t, error_v, flag):
+    def __init__(self, error_t, error_v):
         self.error_t = error_t
         self.error_v = error_v
-        self.flag = flag
 
     def __str__(self):
-        return f"\n{self.error_t}: {self.error_v}: {self.flag}\n"
+        return f"\n{self.error_t}: {self.error_v}\n"
     
 
 class SyntaxError(Error):

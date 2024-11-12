@@ -253,7 +253,7 @@ class Lexer():
         
         new_quote_idxs = []
         for quote_idx in quote_idxs:
-            if quote_idx[0] != quote_idx[1]:
+            if quote_idx[0]-1 != quote_idx[1]:
                 new_quote_idxs.append(quote_idx)
                 
         return new_quote_idxs
@@ -416,14 +416,15 @@ class Lexer():
         token_idx = line.index(token_ident)
         pre_token_idx = token_idx-1 if token_idx != 0 else 0
         post_token_idx = token_idx + len(token_ident)
+        allowed_chars = [" ", "(", ")", ":"]
 
-        if token_idx == 0 and len(line) > post_token_idx and line[post_token_idx] == " " or line[post_token_idx] == ":":
+        if token_idx == 0 and len(line) > post_token_idx and line[post_token_idx] in allowed_chars:
             return True
         
-        if line[pre_token_idx] == " " and post_token_idx == len(line):
+        if line[pre_token_idx] in allowed_chars and post_token_idx == len(line):
             return True
         
-        if line[pre_token_idx] == " " and line[post_token_idx] == " " or line[post_token_idx] == ":":
+        if line[pre_token_idx] in allowed_chars and line[post_token_idx] in allowed_chars:
             return True
         
         return False

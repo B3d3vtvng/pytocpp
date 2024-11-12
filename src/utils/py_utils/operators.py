@@ -16,6 +16,7 @@ CONDITION_OPERATOR_PRECEDENCE_DICT = {
     "TT_gequ": 2,
     "TT_lequ": 2,
     "TT_dequ": 2,
+    "TT_nequ": 2,
     "TT_and": 1,
     "TT_or": 1,
 }
@@ -35,3 +36,39 @@ EXPR_MAP = {
     7: True, #bin_op_expr
     8: True, #cond_expr
 }
+
+BINOP_FUNC_NAMES_DICT = {
+    "+": "vadd",
+    "-": "vsub",
+    "*": "vmul",
+    "/": "vdiv"
+}
+
+UNOP_FUNC_NAMES_DICT = {
+    "not": "vnot",
+    "-": "vneg"
+}
+
+LOGICAL_EXPR_FUNC_NAMES_DICT = {
+    "and": "vand",
+    "or": "vor",
+    "<=": "LEQU",
+    ">=": "GEQU",
+    "<": "LESS",
+    ">": "GREATER",
+    "==": "vequ",
+    "!=": "vnequ"
+}
+
+OPERATORS = [
+    "TT_plus",
+    "TT_sub",
+    "TT_mul",
+    "TT_div",
+    "TT_less",
+    "TT_greater",
+    "TT_equ",
+    "TT_and",
+    "TT_and",
+    "TT_not"
+]
