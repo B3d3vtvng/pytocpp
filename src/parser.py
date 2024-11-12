@@ -606,7 +606,7 @@ class Parser():
                 continue
             if cur_expr_map[8] and token.token_t in ("TT_equ", "TT_less", "TT_greater", "TT_and", "TT_or", "TT_dequ", "TT_gequ", "TT_lequ") or (token.token_t in ("TT_equ", "TT_less", "TT_greater") and tokens[i+1] == "TT_equ"):
                 return self.parse_conditional_expression(tokens, traversal_type)
-            if cur_expr_map[7] and token.token_t in ("TT_sub", "TT_plus", "TT_mul", "TT_div") and not [token for token in tokens if token.token_t in ("TT_equ", "TT_greater", "TT_less")]:
+            if cur_expr_map[7] and token.token_t in ("TT_sub", "TT_plus", "TT_mul", "TT_div", "TT_mod") and not [token for token in tokens if token.token_t in ("TT_equ", "TT_greater", "TT_less")]:
                 return self.parse_binop_expression(tokens, traversal_type)
         if cur_expr_map[4] and [token for token in tokens if token.token_t == "TT_colon"]:
             return self.parse_slice_expression(tokens, traversal_type, ln_num)
@@ -706,7 +706,7 @@ class Parser():
         allowed_types = BINOP_EXPRESSION_BASE_ALLOWED_TYPES
         if operator.token_t == "TT_plus":
             allowed_types += BINOP_EXPRESSION_PLUS_ALLOWED_TYPES
-        if operator.token_t in ("TT_mul"):
+        if operator.token_t == "TT_mul":
             allowed_types += BINOP_EXPRESSION_MUL_ALLOWED_TYPES
         left = tokens[:operator_index]
         right = tokens[operator_index+1:]

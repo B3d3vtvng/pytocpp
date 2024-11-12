@@ -61,7 +61,8 @@ HEADER_MODULES = [
     "vprint",
     "vrange",
     "vslice",
-    "vsub"
+    "vsub",
+    "vmod"
 ]
 
 VALUE_INSERT_LINE = 26
@@ -76,7 +77,8 @@ OPERATOR_TO_MODULE_DICT = {
     "==": "vequ",
     "*": "vmul",
     "or": "vor",
-    "-": "vsub"
+    "-": "vsub",
+    "%": "vmod"
 }
 
 BUILT_IN_FUNC_TO_MODULE_DICT = {

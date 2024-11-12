@@ -7,7 +7,8 @@ BINOP_OPERATOR_PRECEDENCE_DICT = {
     "TT_plus": 2,
     "TT_sub": 2,
     "TT_mul": 1,
-    "TT_div": 1
+    "TT_div": 1,
+    "TT_mod": 1
 }
 
 CONDITION_OPERATOR_PRECEDENCE_DICT = {
@@ -41,7 +42,8 @@ BINOP_FUNC_NAMES_DICT = {
     "+": "vadd",
     "-": "vsub",
     "*": "vmul",
-    "/": "vdiv"
+    "/": "vdiv",
+    "%": "vmod"
 }
 
 UNOP_FUNC_NAMES_DICT = {
@@ -65,6 +67,7 @@ OPERATORS = [
     "TT_sub",
     "TT_mul",
     "TT_div",
+    "TT_mod",
     "TT_less",
     "TT_greater",
     "TT_equ",
