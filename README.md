@@ -15,10 +15,10 @@ This Project has been a dream of mine for about half a year now. Do not take thi
 
 ## Features
 
-Features that will be supported when I have finished the Transpiler include:
+Supported features include:
 
 - Variables with basic data types (int, str, bool, float, lists)
-- Basic arithmetic operations (addition, subtraction, multiplication, division)
+- Basic arithmetic operations (addition, subtraction, multiplication, division, modulo)
 - Basic logical operations (and, or, ==, <, ...)
 - Basic control flow structures (if, elif, else, while, for, ...)
 - Functions
@@ -41,16 +41,13 @@ This project has a lot of limitations as I have been very strict about keeping e
 - No imports
 - No left side indexing (but I am planning to change that)
 - No double indexing
-- Runtime errors in the compiled executable
-- No declaring new variables inside of if-statements
-- No changing variable types inside of if-statements
-- Staticly typed function arguments and return types
+- Custom Runtime errors in the compiled executable to enforce full type safety
 - No OOP features
-- Limited built-in functions
+- Limited built-in function support
 
 Please let me know if you notice any other limitations.
 
 
 ## Build process
 
-I am proud to say that the python part of this project has close to no dependencies. The only extern libraries used are itertools and the c++ headers 'iostream', 'variant' and 'vector'. For the C++ part of the project, a basic C++ compiler shoud do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
+I am proud to say that the python part of this project has close to no dependencies. The only extern libraries used are itertools, sys and the c++ headers 'iostream', 'variant' and 'vector'. For the C++ part of the project, a basic C++ compiler should do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
