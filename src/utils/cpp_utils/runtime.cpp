@@ -280,22 +280,37 @@ public:
         value_t iterable = iterable_v.get_value();
         value_t index = index_v.get_value();
 
-        if (!std::holds_alternative<std::vector<Value> >(iterable)){
-            RunTime instance;
-            instance.throw_rt_error("A non-iterator cannot be indexed");
-            return Value(none{});
-        }
-        else if (!std::holds_alternative<int>(index)){
+        if (!std::holds_alternative<int>(index)){
             RunTime instance;
             instance.throw_rt_error("Indexing expressions must be of type 'int'");
             return Value(none{});
         }
-        else if (std::get<int>(index) < 0 || std::get<int>(index) >= std::get<std::vector<Value> >(iterable).size()){
+
+        if (std::holds_alternative<std::vector<Value> >(iterable)){
+            int int_index = std::get<int>(index);
+
+            if (int_index >= std::get<std::vector<Value> >(iterable).size() | int_index < 0){
+                RunTime instance;
+                instance.throw_rt_error("List index out of range");
+                return Value(none{});
+            }
+            return std::get<std::vector<Value> >(iterable)[int_index];
+        }
+        else if (std::holds_alternative<std::string>(iterable)){
+            int int_index = std::get<int>(index);
+
+            if (int_index >= std::get<std::string>(iterable).length() | int_index < 0){
+                RunTime instance;
+                instance.throw_rt_error("List index out of range");
+                return Value(none{});
+            }
+            return Value(std::get<std::string>(iterable)[int_index]);
+        }
+        else{
             RunTime instance;
-            instance.throw_rt_error("List index out of bounds");
+            instance.throw_rt_error("Cannot index a non-container type");
             return Value(none{});
         }
-        return std::get<std::vector<Value> >(iterable)[std::get<int>(index)];
     }
 
     static Value vslice(const Value& iterable_v, const Value& slice_left_v, const Value& slice_right_v){
@@ -327,111 +342,111 @@ public:
         return Value(new_iterable);
     }
 
-    static bool vcompare(const Value& val_1_v, const Value& val_2_v, const cmp_t& compare_type){
+    static Value vcompare(const Value& val_1_v, const Value& val_2_v, const cmp_t& compare_type){
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
         if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
             if (compare_type == GREATER){
-                return std::get<int>(val_1) > std::get<int>(val_2);
+                return Value(std::get<int>(val_1) > std::get<int>(val_2));
             }
             else if (compare_type == LESS){
-                return std::get<int>(val_1) < std::get<int>(val_2);
+                return Value(std::get<int>(val_1) < std::get<int>(val_2));
             }
             else if (compare_type == GEQU){
-                return std::get<int>(val_1) >= std::get<int>(val_2);
+                return Value(std::get<int>(val_1) >= std::get<int>(val_2));
             }
             else{
-                return std::get<int>(val_1) <= std::get<int>(val_2);
+                return Value(std::get<int>(val_1) <= std::get<int>(val_2));
             }
         }
         else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
             if (compare_type == GREATER){
-                return std::get<int>(val_1) > std::get<float>(val_2);
+                return Value(std::get<int>(val_1) > std::get<float>(val_2));
             }
             else if (compare_type == LESS){
-                return std::get<int>(val_1) < std::get<float>(val_2);
+                return Value(std::get<int>(val_1) < std::get<float>(val_2));
             }
             else if (compare_type == GEQU){
-                return std::get<int>(val_1) >= std::get<float>(val_2);
+                return Value(std::get<int>(val_1) >= std::get<float>(val_2));
             }
             else{
-                return std::get<int>(val_1) <= std::get<float>(val_2);
+                return Value(std::get<int>(val_1) <= std::get<float>(val_2));
             }
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
             if (compare_type == GREATER){
-                return std::get<float>(val_1) > std::get<int>(val_2);
+                return Value(std::get<float>(val_1) > std::get<int>(val_2));
             }
             else if (compare_type == LESS){
-                return std::get<float>(val_1) < std::get<int>(val_2);
+                return Value(std::get<float>(val_1) < std::get<int>(val_2));
             }
             else if (compare_type == GEQU){
-                return std::get<float>(val_1) >= std::get<int>(val_2);
+                return Value(std::get<float>(val_1) >= std::get<int>(val_2));
             }
             else{
-                return std::get<float>(val_1) <= std::get<int>(val_2);
+                return Value(std::get<float>(val_1) <= std::get<int>(val_2));
             }
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
             if (compare_type == GREATER){
-                return std::get<float>(val_1) > std::get<float>(val_2);
+                return Value(std::get<float>(val_1) > std::get<float>(val_2));
             }
             else if (compare_type == LESS){
-                return std::get<float>(val_1) < std::get<float>(val_2);
+                return Value(std::get<float>(val_1) < std::get<float>(val_2));
             }
             else if (compare_type == GEQU){
-                return std::get<float>(val_1) >= std::get<float>(val_2);
+                return Value(std::get<float>(val_1) >= std::get<float>(val_2));
             }
             else{
-                return std::get<float>(val_1) <= std::get<float>(val_2);
+                return Value(std::get<float>(val_1) <= std::get<float>(val_2));
             }
         }
         else{
             RunTime instance;
             instance.throw_rt_error("Invalid type for comparison");
-            return false;
+            return Value(none{});
         }
     }
 
-    static bool vequ(const Value& val_1_v, const Value& val_2_v){
+    static Value vequ(const Value& val_1_v, const Value& val_2_v){
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
         if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            return std::get<int>(val_1) == std::get<float>(val_2);
+            return Value(std::get<int>(val_1) == std::get<float>(val_2));
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            return std::get<float>(val_1) == std::get<int>(val_2);
+            return Value(std::get<float>(val_1) == std::get<int>(val_2));
         }
 
         if (val_1.index() != val_2.index()){
-            return false;
+            return Value(false);
         }
 
         if (std::holds_alternative<int>(val_1)){
-            return std::get<int>(val_1) == std::get<int>(val_2);
+            return Value(std::get<int>(val_1) == std::get<int>(val_2));
         }
         else if (std::holds_alternative<float>(val_1)){
-            return std::get<float>(val_1) == std::get<float>(val_2);
+            return Value(std::get<float>(val_1) == std::get<float>(val_2));
         }
         else if (std::holds_alternative<bool>(val_1)){
-            return std::get<bool>(val_1) == std::get<bool>(val_2);
+            return Value(std::get<bool>(val_1) == std::get<bool>(val_2));
         }
         else if (std::holds_alternative<std::string>(val_1)){
-            return std::get<std::string>(val_1) == std::get<std::string>(val_2);
+            return Value(std::get<std::string>(val_1) == std::get<std::string>(val_2));
         }
         else if (std::holds_alternative<std::vector<Value> >(val_1)){
-            return std::get<std::vector<Value> >(val_1) == std::get<std::vector<Value> >(val_2);
+            return Value(std::get<std::vector<Value> >(val_1) == std::get<std::vector<Value> >(val_2));
         }
         else if (std::holds_alternative<none>(val_1)){
-            return std::get<none>(val_1) == std::get<none>(val_2);
+            return Value(std::get<none>(val_1) == std::get<none>(val_2));
         }
-        return false;
+        return Value(false);
     }
 
-    static bool vnequ(const Value& val_1_v, const Value& val_2_v){
-        return !RunTime::vequ(val_1_v, val_2_v);
+    static Value vnequ(const Value& val_1_v, const Value& val_2_v){
+        return Value(!std::get<bool>(RunTime::vequ(val_1_v, val_2_v).get_value()));
     }
 
     static Value vand(const Value& val_1_v, const Value& val_2_v){
@@ -486,6 +501,16 @@ public:
             instance.throw_rt_error("Cannot negate a value that is not of type 'int' or type 'float'");
             return Value(none{}); 
         }
+    }
+
+    static bool vcondition(const Value& condition){
+        if (!std::holds_alternative<bool>(condition.get_value())){
+            RunTime instance;
+            instance.throw_rt_error("Invalid type for conditional expression");
+            return false;
+        }
+
+        return std::get<bool>(condition.get_value());
     }
 
     static Value vinput(const Value& msg){
@@ -624,8 +649,46 @@ public:
     }
 
     template<typename... Args>
-    static void vprint(const Args&... args) {
+    static void vprint(const Args&... args){
         ((std::cout << args.tostr() << " "), ...) << "\n";
+    }
+
+    template<typename... Args>
+    static Value vstrip(const Args&... args){
+        std::vector<Value> arg_vec = { Value(args)... };
+
+        if (arg_vec.size() == 1){
+            value_t str_v = arg_vec[0].get_value();
+            value_t strip_v = Value(" ")
+        }
+        else if (arg_vec.size() == 2){
+            value_t str_v = arg_vec[0].get_value()
+            value_t strip_v = arg_vec[1].get_value()
+        }
+
+        if (!std::holds_alternative<std::string>(str_v) | !std::holds_alternative<std::string>(strip_v)){
+            RunTime instance;
+            instance.throw_rt_error("Invalid argument type for function strip()");
+            return Value(none{});
+        }
+
+        std::string str = std::get<std::string>(str_v);
+        std::string strip = std::get<std::string>(strip);
+        std::string new_string = ""
+
+        if (strip.length() != 1){
+            RunTime instance;
+            instance.throw_rt_error("Cannot strip more than one character");
+            return Value(none{});
+        }
+
+        for (const char character : str){
+            if (character != strip){
+                new_string += character;
+            }
+        }
+
+        return Value(new_string);
     }
 };
 

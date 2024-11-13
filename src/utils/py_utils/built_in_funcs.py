@@ -30,6 +30,9 @@ temp_ast.cur_node.children[5].return_type = ("float",)
 temp_ast.append_node(FuncDefNode("range", ["start", "stop", "step"]))
 temp_ast.cur_node.children[6].arg_types = [("int",), ("int",), ("int",)]
 temp_ast.cur_node.children[6].return_type = ("list",)
+temp_ast.append_node(FuncDefNode("strip", ["str", "strip"]))
+temp_ast.cur_node.children[7].arg_types = [("str",), ("str",)]
+temp_ast.cur_node.children[6].return_type = ("str",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",
@@ -38,7 +41,8 @@ BUILT_IN_FUNC_NAMES = [
     "int", 
     "str", 
     "float", 
-    "range"
+    "range",
+    "strip"
 ]
 
 BUILT_IN_FUNC_DICT = {}
@@ -48,7 +52,8 @@ for i in range(len(BUILT_IN_FUNC_NAMES)):
 VAR_ARG_BUILT_IN_FUNCS = [
     "print",
     "input",
-    "range"
+    "range",
+    "strip"
 ]
 
 PY_TO_CPP_BUILT_IN_FUNC_DICT = {
@@ -58,6 +63,7 @@ PY_TO_CPP_BUILT_IN_FUNC_DICT = {
     "int": "RunTime::toint",
     "str": "RunTime::tostr",
     "float": "RunTime::tofloat",
-    "range": "RunTime::vrange"
+    "range": "RunTime::vrange",
+    "strip": "RunTime::vstrip"
 }
     

@@ -100,6 +100,7 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "input": "vinput",
     "len": "vlen",
     "print": "vprint",
-    "range": "vrange"
+    "range": "vrange",
+    "strip": "vstrip"
 }
 

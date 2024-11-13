@@ -94,11 +94,12 @@ class CodeGenerator():
     def generate_func_call(self, target_string: str, indentation: int, in_expr: bool = False) -> str:
         args = []
         arg_count = len(self.ast.cur_node.args)
-        self.ast.traverse_node("args")
-        for _ in range(arg_count):
-            args.append(self.generate_node(in_expr = True))
-            self.ast.next_child_node("args")
-        self.ast.detraverse_node()
+        if arg_count != 0:
+            self.ast.traverse_node("args")
+            for _ in range(arg_count):
+                args.append(self.generate_node(in_expr = True))
+                self.ast.next_child_node("args")
+            self.ast.detraverse_node()
         name = self.ast.cur_node.name
         if name in BUILT_IN_FUNC_NAMES:
             if name in BUILT_IN_FUNC_TO_MODULE_DICT.keys():
@@ -204,7 +205,8 @@ class CodeGenerator():
     def generate_conditional_statement(self, target_string: str, indentation: int, **kw_args) -> str:
         if self.ast.cur_node.__class__.__name__ != "ElseNode":
             self.ast.traverse_node("condition")
-            condition = self.generate_node(in_expr = True)
+            condition = self.generate_node("RunTime::vcondition(%)", in_expr = True)
+            self.include("vcondition")
             self.ast.detraverse_node()
         if self.ast.cur_node.__class__.__name__ == "IfNode":
             output = f"if ({condition}){{\n%}}"
@@ -219,7 +221,8 @@ class CodeGenerator():
     
     def generate_while_loop(self, target_string: str, indentation: int, **kw_args) -> str:
         self.ast.traverse_node("condition")
-        condition = self.generate_node(in_expr = True)
+        condition = self.generate_node("RunTime::vcondition(%)", in_expr = True)
+        self.include("vcondition")
         self.ast.detraverse_node()
         body = self.generate_body(indentation)
         output = f"{indentation * " "}while ({condition}){{\n{body}{indentation * " "}}}"
@@ -228,6 +231,7 @@ class CodeGenerator():
     def generate_body(self, indentation: int) -> list[str]:
         body = ""
         child_count = len(self.ast.cur_node.children)
+        cur_node = self.ast.cur_node
         self.ast.traverse_node()
         for _ in range(child_count):
             if self.ast.cur_node.__class__.__name__ == "AssignNode" and self.ast.cur_node.value == None:
@@ -235,7 +239,7 @@ class CodeGenerator():
                 continue
             body += self.generate_node("%\n", indentation + 4)
             self.ast.next_child_node()
-        self.ast.detraverse_node()
+        self.ast.cur_node = cur_node
         return body
     
     def generate_for_loop(self, target_string: str, indentation: int, **kw_args) -> str:
@@ -249,7 +253,11 @@ class CodeGenerator():
     
     def generate_func_def(self, target_string: str, indentation: int, **kw_args) -> None:
         body = self.generate_body(indentation)
-        output = f"Value {self.ast.cur_node.name}({"Value " + ', Value '.join(self.ast.cur_node.arg_names)}){{\n{body}{indentation * " "}}}"
+        if len(self.ast.cur_node.arg_types) != 0:
+            arg_prefix = "Value "
+        else:
+            arg_prefix = ""
+        output = f"Value {self.ast.cur_node.name}({arg_prefix + ', Value '.join(self.ast.cur_node.arg_names)}){{\n{body}{indentation * " "}}}"
         self.func_defs.append(output)
         return None
     
@@ -275,6 +283,7 @@ class CodeGenerator():
         runtime_insert_line = RUNTIME_INSERT_LINE
         included_modules = [module for module in self.module_dict.keys() if self.module_dict[module]]
         public_incl = False
+        print(included_modules)
         for included_module in included_modules:
             target = "value" if included_module[:2] == "v_" else "runtime"
             cur_insert_line = value_insert_line if target == "value" else runtime_insert_line

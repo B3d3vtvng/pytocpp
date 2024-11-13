@@ -423,7 +423,7 @@ class Parser():
             last_func_def_node.func_call_nodes.append(new_node)
         else:
             last_func_def_node.func_call_nodes = [new_node]
-        if not last_func_def_node.children and name not in BUILT_IN_FUNC_NAMES:
+        if name not in BUILT_IN_FUNC_NAMES and last_func_def_node.unparsed_children:
             if self.parse_func_def_children(arg_types, last_func_def_node, new_node) == -1: return -1
         self.ast.detraverse_node()
         return 0
@@ -460,11 +460,18 @@ class Parser():
         self.ast.cur_node = last_func_def_node
         self.ast.cur_node.arg_types = arg_types
         block_to_parse = self.ast.cur_node.unparsed_children
+        self.ast.cur_node.unparsed_children = None
         for i in range(len(arg_types)):
             self.ast.append_node(AssignNode(self.ast.cur_node.arg_names[i]))
             self.ast.cur_node.var_identifier_dict[self.ast.cur_node.arg_names[i]] = self.ast.cur_node.children[i]
             self.ast.cur_node.children[i].type = arg_types[i]
         if self.parse_children(self.ast.cur_node.indentation, block_to_parse=block_to_parse) == -1: return -1
+        if not self.ast.cur_node.return_nodes:
+            self.ast.append_node(ReturnNode(), "return_nodes")
+            self.ast.traverse_node("return_nodes")
+            self.ast.append_node(NoneNode(), "return_value")
+            self.ast.detraverse_node()
+            self.ast.cur_node.children.append(self.ast.cur_node.return_nodes[0])
         self.ast.cur_node = new_node
         return 0
     

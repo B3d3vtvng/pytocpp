@@ -299,8 +299,12 @@ class FuncDefNode(ASTNode):
         else:
             child_len = 0
         arg_str = ", ".join(self.arg_names)
+        node_str = ""
+        for node in self.return_nodes:
+            node.repr_offset = self.repr_offset + 2
+            node_str += f"\n{"    " * node.repr_offset}{node}"
         
-        return f"FuncDefNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args: {arg_str}\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {child_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"FuncDefNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args: {arg_str}\n{tab_offset}    Return Values[{node_str}\n{tab_offset}    ]\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {child_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class ReturnNode(ASTNode):
     def __init__(self) -> None:
@@ -337,7 +341,7 @@ class FuncCallNode(ASTNode):
                 arg_str += f"\n{"    " * arg.repr_offset}{arg}"
         args_len = len(self.args) if self.args else 0
         
-        return f"FuncCallNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args[{tab_offset}        {arg_str}\n{tab_offset}    ]\n{tab_offset}    Len: {args_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"FuncCallNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args[{tab_offset}        {arg_str}\n{tab_offset}    ]\n{tab_offset}    Len: {args_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}    Parent: {self.parent.__class__.__name__}\n{tab_offset}]"
 
 class ForLoopNode(ASTNode):
     def __init__(self, iter_var_name: str) -> None:
