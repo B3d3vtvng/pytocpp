@@ -2,10 +2,10 @@
         value_t container = container_v.get_value();
 
         if (std::holds_alternative<std::vector<Value> >(container)){
-            return Value(static_cast<int>(std::get<std::vector<Value> >(container).size()));
+            return Value(static_cast<long long>(std::get<std::vector<Value> >(container).size()));
         }
         else if (std::holds_alternative<std::string >(container)){
-            return Value(static_cast<int>(std::get<std::string>(container).length()));
+            return Value(static_cast<long long>(std::get<std::string>(container).length()));
         }
         else{
             RunTime instance;

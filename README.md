@@ -24,6 +24,7 @@ Supported features include:
 - Functions
 - Basic I/O operations (read, print)
 - Basic built-in functions (len(), type casting, ...)
+- 64-bit integers and 128-bit floats
 
 Possible features in the future could be:
 

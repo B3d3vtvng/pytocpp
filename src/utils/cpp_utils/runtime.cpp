@@ -9,7 +9,7 @@
 class Value;
 
 using none = std::monostate;
-using value_t = std::variant<int, float, bool, std::string, std::vector<Value>, none>;
+using value_t = std::variant<long long, float, bool, std::string, std::vector<Value>, none>;
 
 enum Compare{
     GREATER,
@@ -74,19 +74,19 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = value;
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            return std::get<int>(val_1) == std::get<float>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            return std::get<long long>(val_1) == std::get<float>(val_2);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            return std::get<float>(val_1) == std::get<int>(val_2);
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            return std::get<float>(val_1) == std::get<long long>(val_2);
         }
 
         if (val_1.index() != val_2.index()){
             return false;
         }
 
-        if (std::holds_alternative<int>(val_1)){
-            return std::get<int>(val_1) == std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1)){
+            return std::get<long long>(val_1) == std::get<long long>(val_2);
         }
         else if (std::holds_alternative<float>(val_1)){
             return std::get<float>(val_1) == std::get<float>(val_2);
@@ -119,16 +119,16 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = std::get<int>(val_1) + std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) + std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            float raw_res = std::get<int>(val_1) + std::get<float>(val_2);
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            float raw_res = std::get<long long>(val_1) + std::get<float>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            float raw_res = std::get<float>(val_1) + std::get<int>(val_2);
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            float raw_res = std::get<float>(val_1) + std::get<long long>(val_2);
             return Value(raw_res);
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
@@ -156,16 +156,16 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = std::get<int>(val_1) - std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) - std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            float raw_res = std::get<int>(val_1) - std::get<float>(val_2);
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            float raw_res = std::get<long long>(val_1) - std::get<float>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            float raw_res = std::get<float>(val_1) - std::get<int>(val_2);
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            float raw_res = std::get<float>(val_1) - std::get<long long>(val_2);
             return Value(raw_res);
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
@@ -183,34 +183,34 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = std::get<int>(val_1) * std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) * std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            float raw_res = std::get<int>(val_1) * std::get<float>(val_2);
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            float raw_res = std::get<long long>(val_1) * std::get<float>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            float raw_res = std::get<float>(val_1) * std::get<int>(val_2);
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            float raw_res = std::get<float>(val_1) * std::get<long long>(val_2);
             return Value(raw_res);
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
             float raw_res = std::get<float>(val_1) * std::get<float>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<std::string>(val_1) && std::holds_alternative<int>(val_2)) {
+        else if (std::holds_alternative<std::string>(val_1) && std::holds_alternative<long long>(val_2)) {
             std::string val_1_str = std::get<std::string>(val_1);
             std::string raw_res = "";
-            for (int i = 0;i<std::get<int>(val_2);i++){
+            for (long long i = 0;i<std::get<long long>(val_2);i++){
                 raw_res = raw_res + val_1_str;
             }
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<std::string>(val_2)) {
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<std::string>(val_2)) {
             std::string val_2_str = std::get<std::string>(val_2);
             std::string raw_res = "";
-            for (int i = 0;i<std::get<int>(val_1);i++){
+            for (long long i = 0;i<std::get<long long>(val_1);i++){
                 raw_res = raw_res + raw_res;
             }
             return Value(raw_res);
@@ -226,16 +226,16 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = std::get<int>(val_1) / std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) / std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            float raw_res = std::get<int>(val_1) / std::get<float>(val_2);
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            float raw_res = std::get<long long>(val_1) / std::get<float>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            float raw_res = std::get<float>(val_1) / std::get<int>(val_2);
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            float raw_res = std::get<float>(val_1) / std::get<long long>(val_2);
             return Value(raw_res);
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
@@ -253,20 +253,20 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = std::get<int>(val_1) % std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) % std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            int raw_res = std::get<int>(val_1) % static_cast<int>(std::round(std::get<float>(val_2)));
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) % static_cast<long long>(std::round(std::get<float>(val_2)));
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = static_cast<int>(std::round(std::get<float>(val_1))) % std::get<int>(val_2);
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = static_cast<long long>(std::round(std::get<float>(val_1))) % std::get<long long>(val_2);
             return Value(raw_res);
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
-            int raw_res = static_cast<int>(std::round(std::get<float>(val_1))) % static_cast<int>(std::round(std::get<float>(val_2)));
+            long long raw_res = static_cast<long long>(std::round(std::get<float>(val_1))) % static_cast<long long>(std::round(std::get<float>(val_2)));
             return Value(raw_res);
         }
         else {
@@ -280,14 +280,14 @@ public:
         value_t iterable = iterable_v.get_value();
         value_t index = index_v.get_value();
 
-        if (!std::holds_alternative<int>(index)){
+        if (!std::holds_alternative<long long>(index)){
             RunTime instance;
-            instance.throw_rt_error("Indexing expressions must be of type 'int'");
+            instance.throw_rt_error("Indexing expressions must be of type 'long long'");
             return Value(none{});
         }
 
         if (std::holds_alternative<std::vector<Value> >(iterable)){
-            int int_index = std::get<int>(index);
+            long long int_index = std::get<long long>(index);
 
             if (int_index >= std::get<std::vector<Value> >(iterable).size() | int_index < 0){
                 RunTime instance;
@@ -297,7 +297,7 @@ public:
             return std::get<std::vector<Value> >(iterable)[int_index];
         }
         else if (std::holds_alternative<std::string>(iterable)){
-            int int_index = std::get<int>(index);
+            long long int_index = std::get<long long>(index);
 
             if (int_index >= std::get<std::string>(iterable).length() | int_index < 0){
                 RunTime instance;
@@ -323,12 +323,12 @@ public:
             instance.throw_rt_error("A non-iterator cannot be indexed");
             return Value(none{});
         }
-        else if (!std::holds_alternative<int>(slice_left) || !std::holds_alternative<int>(slice_right)){
+        else if (!std::holds_alternative<long long>(slice_left) || !std::holds_alternative<long long>(slice_right)){
             RunTime instance;
-            instance.throw_rt_error("Slice expressions must be of type 'int'");
+            instance.throw_rt_error("Slice expressions must be of type 'long long'");
             return Value(none{});
         }
-        else if (std::get<int>(slice_left) < 0 || std::get<int>(slice_left) > std::get<std::vector<Value> >(iterable).size() || std::get<int>(slice_right) < 0 || std::get<int>(slice_right) > std::get<std::vector<Value> >(iterable).size()){
+        else if (std::get<long long>(slice_left) < 0 || std::get<long long>(slice_left) > std::get<std::vector<Value> >(iterable).size() || std::get<long long>(slice_right) < 0 || std::get<long long>(slice_right) > std::get<std::vector<Value> >(iterable).size()){
             RunTime instance;
             instance.throw_rt_error("Slice index out of bounds");
             return Value(none{});
@@ -336,7 +336,7 @@ public:
         }
 
         std::vector<Value> new_iterable;
-        for (int i = std::get<int>(slice_left);i<std::get<int>(slice_right);i++){
+        for (long long i = std::get<long long>(slice_left);i<std::get<long long>(slice_right);i++){
             new_iterable.push_back(std::get<std::vector<Value> >(iterable)[i]);
         }
         return Value(new_iterable);
@@ -346,46 +346,46 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
             if (compare_type == GREATER){
-                return Value(std::get<int>(val_1) > std::get<int>(val_2));
+                return Value(std::get<long long>(val_1) > std::get<long long>(val_2));
             }
             else if (compare_type == LESS){
-                return Value(std::get<int>(val_1) < std::get<int>(val_2));
+                return Value(std::get<long long>(val_1) < std::get<long long>(val_2));
             }
             else if (compare_type == GEQU){
-                return Value(std::get<int>(val_1) >= std::get<int>(val_2));
+                return Value(std::get<long long>(val_1) >= std::get<long long>(val_2));
             }
             else{
-                return Value(std::get<int>(val_1) <= std::get<int>(val_2));
+                return Value(std::get<long long>(val_1) <= std::get<long long>(val_2));
             }
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
             if (compare_type == GREATER){
-                return Value(std::get<int>(val_1) > std::get<float>(val_2));
+                return Value(std::get<long long>(val_1) > std::get<float>(val_2));
             }
             else if (compare_type == LESS){
-                return Value(std::get<int>(val_1) < std::get<float>(val_2));
+                return Value(std::get<long long>(val_1) < std::get<float>(val_2));
             }
             else if (compare_type == GEQU){
-                return Value(std::get<int>(val_1) >= std::get<float>(val_2));
+                return Value(std::get<long long>(val_1) >= std::get<float>(val_2));
             }
             else{
-                return Value(std::get<int>(val_1) <= std::get<float>(val_2));
+                return Value(std::get<long long>(val_1) <= std::get<float>(val_2));
             }
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
             if (compare_type == GREATER){
-                return Value(std::get<float>(val_1) > std::get<int>(val_2));
+                return Value(std::get<float>(val_1) > std::get<long long>(val_2));
             }
             else if (compare_type == LESS){
-                return Value(std::get<float>(val_1) < std::get<int>(val_2));
+                return Value(std::get<float>(val_1) < std::get<long long>(val_2));
             }
             else if (compare_type == GEQU){
-                return Value(std::get<float>(val_1) >= std::get<int>(val_2));
+                return Value(std::get<float>(val_1) >= std::get<long long>(val_2));
             }
             else{
-                return Value(std::get<float>(val_1) <= std::get<int>(val_2));
+                return Value(std::get<float>(val_1) <= std::get<long long>(val_2));
             }
         }
         else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
@@ -413,19 +413,19 @@ public:
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            return Value(std::get<int>(val_1) == std::get<float>(val_2));
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<float>(val_2)) {
+            return Value(std::get<long long>(val_1) == std::get<float>(val_2));
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            return Value(std::get<float>(val_1) == std::get<int>(val_2));
+        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<long long>(val_2)) {
+            return Value(std::get<float>(val_1) == std::get<long long>(val_2));
         }
 
         if (val_1.index() != val_2.index()){
             return Value(false);
         }
 
-        if (std::holds_alternative<int>(val_1)){
-            return Value(std::get<int>(val_1) == std::get<int>(val_2));
+        if (std::holds_alternative<long long>(val_1)){
+            return Value(std::get<long long>(val_1) == std::get<long long>(val_2));
         }
         else if (std::holds_alternative<float>(val_1)){
             return Value(std::get<float>(val_1) == std::get<float>(val_2));
@@ -490,15 +490,15 @@ public:
     static Value vneg(const Value& val_v){
         value_t val = val_v.get_value();
 
-        if (std::holds_alternative<int>(val)){
-            return Value(-std::get<int>(val));
+        if (std::holds_alternative<long long>(val)){
+            return Value(-std::get<long long>(val));
         }
         else if (std::holds_alternative<float>(val)){
             return Value(-std::get<float>(val));
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot negate a value that is not of type 'int' or type 'float'");
+            instance.throw_rt_error("Cannot negate a value that is not of type 'long long' or type 'float'");
             return Value(none{}); 
         }
     }
@@ -524,10 +524,10 @@ public:
         value_t container = container_v.get_value();
 
         if (std::holds_alternative<std::vector<Value> >(container)){
-            return Value(static_cast<int>(std::get<std::vector<Value> >(container).size()));
+            return Value(static_cast<long long>(std::get<std::vector<Value> >(container).size()));
         }
         else if (std::holds_alternative<std::string >(container)){
-            return Value(static_cast<int>(std::get<std::string>(container).length()));
+            return Value(static_cast<long long>(std::get<std::string>(container).length()));
         }
         else{
             RunTime instance;
@@ -544,7 +544,7 @@ public:
         const value_t raw_val = val_v.get_value();
 
         std::string val;
-        if (std::holds_alternative<int>(raw_val)){
+        if (std::holds_alternative<long long>(raw_val)){
             return val_v;
         }
         else if (std::holds_alternative<float>(raw_val)){
@@ -556,7 +556,7 @@ public:
             val = std::get<std::string>(raw_val);
         }
 
-        int int_val;
+        long long int_val;
         try{
             int_val = std::stoi(val);
         }
@@ -573,31 +573,31 @@ public:
     static Value vrange(const Args&... args){
         std::vector<Value> arg_vec = { Value(args)... };
 
-        int start;
-        int stop;
-        int step;
+        long long start;
+        long long stop;
+        long long step;
 
         if (arg_vec.size() == 1){
             value_t stop_v = arg_vec[0].get_value();
-            if (!std::holds_alternative<int>(stop_v)){
+            if (!std::holds_alternative<long long>(stop_v)){
                 RunTime instance;
                 instance.throw_rt_error("Invalid argument type for function 'range'");
                 return Value(none{});
             }
 
             start = 0;
-            stop = std::get<int>(stop_v);
+            stop = std::get<long long>(stop_v);
             step = 1;
         }
 
         if (arg_vec.size() == 3){
             value_t step_v = arg_vec[2].get_value();
-            if (!std::holds_alternative<int>(step_v)){
+            if (!std::holds_alternative<long long>(step_v)){
                 RunTime instance;
                 instance.throw_rt_error("Invalid argument type for function 'range'");
                 return Value(none{});
             }
-            step = std::get<int>(step_v);
+            step = std::get<long long>(step_v);
         }
         else{
             step = 1;
@@ -606,24 +606,24 @@ public:
         if (arg_vec.size() >= 2){
             value_t stop_v = arg_vec[1].get_value();
             value_t start_v = arg_vec[0].get_value();
-            if (!std::holds_alternative<int>(stop_v) || !std::holds_alternative<int>(start_v)){
+            if (!std::holds_alternative<long long>(stop_v) || !std::holds_alternative<long long>(start_v)){
                 RunTime instance;
                 instance.throw_rt_error("Invalid argument type for function 'range'");
                 return Value(none{});
             }
-            stop = std::get<int>(stop_v);
-            start = std::get<int>(start_v);
+            stop = std::get<long long>(stop_v);
+            start = std::get<long long>(start_v);
         }
 
         std::vector<Value> output_vec;
 
         if (step > 0){
-            for (int i = start; i<stop;i+=step){
+            for (long long i = start; i<stop;i+=step){
                 output_vec.push_back(Value(i));
             }
         }
         else if (step < 0){
-            for (int i = start; i>stop;i+=step){
+            for (long long i = start; i>stop;i+=step){
                 output_vec.push_back(Value(i));
             }
         }

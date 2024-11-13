@@ -1,11 +1,11 @@
     static Value vneg(const Value& val_v){
         value_t val = val_v.get_value();
 
-        if (std::holds_alternative<int>(val)){
-            return Value(-std::get<int>(val));
+        if (std::holds_alternative<long long>(val)){
+            return Value(-std::get<long long>(val));
         }
-        else if (std::holds_alternative<float>(val)){
-            return Value(-std::get<float>(val));
+        else if (std::holds_alternative<long double>(val)){
+            return Value(-std::get<long double>(val));
         }
         else{
             RunTime instance;

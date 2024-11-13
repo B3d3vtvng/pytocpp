@@ -10,7 +10,7 @@ DEFAULT_HEADER = [
     "class Value;\n",
     "\n",
     "using none = std::monostate;\n",
-    "using value_t = std::variant<int, float, bool, std::string, std::vector<Value>, none>;\n",
+    "using value_t = std::variant<long long, long double, bool, std::string, std::vector<Value>, none>;\n",
     "\n",
     "enum Compare{\n",
     "    GREATER,\n",

@@ -2,34 +2,34 @@
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
-        if (std::holds_alternative<int>(val_1) && std::holds_alternative<int>(val_2)) {
-            int raw_res = std::get<int>(val_1) * std::get<int>(val_2);
+        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long long raw_res = std::get<long long>(val_1) * std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<float>(val_2)) {
-            float raw_res = std::get<int>(val_1) * std::get<float>(val_2);
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long double>(val_2)) {
+            long double raw_res = std::get<long long>(val_1) * std::get<long double>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<int>(val_2)) {
-            float raw_res = std::get<float>(val_1) * std::get<int>(val_2);
+        else if (std::holds_alternative<long double>(val_1) && std::holds_alternative<long long>(val_2)) {
+            long double raw_res = std::get<long double>(val_1) * std::get<long long>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<float>(val_1) && std::holds_alternative<float>(val_2)) {
-            float raw_res = std::get<float>(val_1) * std::get<float>(val_2);
+        else if (std::holds_alternative<long double>(val_1) && std::holds_alternative<long double>(val_2)) {
+            long double raw_res = std::get<long double>(val_1) * std::get<long double>(val_2);
             return Value(raw_res);
         }
-        else if (std::holds_alternative<std::string>(val_1) && std::holds_alternative<int>(val_2)) {
+        else if (std::holds_alternative<std::string>(val_1) && std::holds_alternative<long long>(val_2)) {
             std::string val_1_str = std::get<std::string>(val_1);
             std::string raw_res = "";
-            for (int i = 0;i<std::get<int>(val_2);i++){
+            for (long long i = 0;i<std::get<long long>(val_2);i++){
                 raw_res = raw_res + val_1_str;
             }
             return Value(raw_res);
         }
-        else if (std::holds_alternative<int>(val_1) && std::holds_alternative<std::string>(val_2)) {
+        else if (std::holds_alternative<long long>(val_1) && std::holds_alternative<std::string>(val_2)) {
             std::string val_2_str = std::get<std::string>(val_2);
             std::string raw_res = "";
-            for (int i = 0;i<std::get<int>(val_1);i++){
+            for (long long i = 0;i<std::get<long long>(val_1);i++){
                 raw_res = raw_res + raw_res;
             }
             return Value(raw_res);
