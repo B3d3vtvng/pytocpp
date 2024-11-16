@@ -5,7 +5,7 @@ Tokenises the given input.
 """
 
 from src.utils.py_utils.tokentypes import TOKEN_TYPES, KEYWORDS 
-from src.utils.py_utils.error import SyntaxError
+from src.utils.py_utils.error import SyntaxError, SizeError
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.sort_tokens import sort_tokens
 
@@ -286,7 +286,7 @@ class Lexer():
             if len(occ_idxs) != idx+1 and occ_idx+1 != occ_idxs[idx+1]:
                 non_token_code.append((line[occ_idx+1:occ_idxs[idx+1]].strip(), occ_idx+1))
         if occ_idx != len(line)-1:
-            if non_token_code[len(non_token_code)-1][1] != occ_idx:
+            if not non_token_code or non_token_code[len(non_token_code)-1][1] != occ_idx:
                 non_token_code.append((line[occ_idx+1:], occ_idx+1))
 
         return non_token_code
@@ -338,6 +338,9 @@ class Lexer():
         Returns the newly created token
         """
         if non_token.isdigit():
+            if int(non_token) >= 9223372036854775807:
+                self.error = SizeError("Cannot handle numbers exceeding the supported integer limit of 9,223,372,036,854,775,807", ln_num, self.file_n)
+                return None
             token = Token(ln_num, non_token_idx, "TT_int", int(non_token))
         elif self.isfloat(non_token):
             token = self.make_float_token(ln_num, non_token_idx, non_token)
@@ -380,6 +383,9 @@ class Lexer():
         """
         float_val_left, float_val_right = non_token.split(".")
         float_val = int(float_val_left)
+        if float_val >= 9223372036854775807:
+            self.error = SizeError("Number exceeds the supported integer limit of 9,223,372,036,854,775,807", ln_num, self.file_n)
+            return None
         float_val += int(float_val_right) / pow(10, len(float_val_right))
         return Token(ln_num, non_token_idx, "TT_float", float_val)
 

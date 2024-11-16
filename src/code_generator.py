@@ -283,7 +283,6 @@ class CodeGenerator():
         runtime_insert_line = RUNTIME_INSERT_LINE
         included_modules = [module for module in self.module_dict.keys() if self.module_dict[module]]
         public_incl = False
-        print(included_modules)
         for included_module in included_modules:
             target = "value" if included_module[:2] == "v_" else "runtime"
             cur_insert_line = value_insert_line if target == "value" else runtime_insert_line

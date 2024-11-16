@@ -7,7 +7,7 @@ parsing, most of the error handling and returns an ast
 
 
 from src.utils.py_utils.error import *
-from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS
+from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
 from src.utils.py_utils.allowed_type_constants import *
@@ -289,7 +289,10 @@ class Parser():
         line = line[1:len(line)-2]
         new_node_id = self.ast.append_node(WhileLoopNode())
         self.ast.traverse_node_by_id(new_node_id)
-        if self.parse_expression(line, "condition",cur_ln_num,  expr_4=False) == -1:
+        expr_type = self.parse_expression(line, "condition",cur_ln_num,  expr_4=False)
+        if expr_type == -1: return -1
+        if not self.is_valid_type(expr_type, ("bool",)):
+            self.error = TypeError("Invalid type for conditional expression", cur_ln_num, self.file_n)
             return -1
         child_count = self.parse_children(cur_line_indentation, rem_line_tokens)
         self.ast.detraverse_node()
@@ -414,8 +417,13 @@ class Parser():
             arg_types.append(arg_type)
         if not arg_exprs and name == "input":
             self.ast.append_node(StringNode(""), "args")
+        elif len(arg_exprs) == 1 and name == "strip":
+            self.ast.append_node(StringNode(" "), "args")
+        elif not arg_exprs and name == "print":
+            self.ast.append_node(StringNode(""), "args")
         last_func_def_node = self.func_identifier_dict[name]
-        var_args = self.var_args_checking(name, arg_types)
+        var_args = self.var_args_checking(name, arg_types, cur_ln_num)
+        if self.error: return -1
         if not var_args and len(arg_exprs) != len(last_func_def_node.arg_names):
             self.error = TypeError(f"{name}() takes {len(last_func_def_node.arg_names)} arguments but {len(arg_exprs)} were given!", cur_ln_num, self.file_n)
             return -1
@@ -499,7 +507,7 @@ class Parser():
                     case "TT_lbracket":
                         bracket_depth += 1
                     case "TT_rbracket":
-                        if bracket_depth == 0: return -2
+                        if bracket_depth == 0: return -1
                         bracket_depth -= 1
                 cur_arg_expr.append(token)
                 continue
@@ -510,6 +518,10 @@ class Parser():
                 cur_arg_expr = []
             else:
                 cur_arg_expr.append(token)
+        if paren_depth:
+            return -1
+        if bracket_depth:
+            return -2
         if cur_arg_expr == []:
             return -3
         arg_exprs.append(cur_arg_expr)
@@ -538,7 +550,7 @@ class Parser():
         if var_type != () and self.is_valid_type(var_type, ("list",)):
             if isinstance(self.ast.cur_node.value, ArrayNode):
                 self.ast.cur_node.children_types = tuple(set([child.type for child in self.ast.cur_node.value.children]))
-            else:
+            elif (self.ast.cur_node.value.__class__.__name__ == "FuncCallNode" and self.ast.cur_node.value.name != "range"):
                 self.ast.cur_node.children_types = self.get_array_types()
             self.ast.cur_node.children_count = len(self.ast.cur_node.children_types)
         self.ast.cur_node.type = var_type
@@ -589,8 +601,8 @@ class Parser():
         if len(tokens) >= 3 and cur_expr_map[5] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lparen" and tokens[len(tokens)-1].token_t == "TT_rparen" and self.is_func_call(tokens):
             if self.parse_func_call(tokens, traversal_type, from_expr=True) == -1: return -1
             return self.func_identifier_dict[tokens[0].token_v].return_type
-        if cur_expr_map[6] and tokens[0].token_t in ("TT_sub", "TT_not"):
-            return self.parse_un_op_expression(tokens, traversal_type)
+        if cur_expr_map[6] and tokens[0].token_t in ("TT_sub", "TT_not", "TT_plus"):
+            return self.parse_un_op_expression(tokens, traversal_type, ln_num)
         for i, token in enumerate(tokens):
             if i == 0 or i == len(tokens)-1:
                 continue
@@ -672,11 +684,10 @@ class Parser():
             allowed_types = CONDITIONAL_EXPRESSION_CONDTIONAL_OPERATOR_AllOWED_TYPES
             if operator_str in ["==", "!="]:
                 allowed_types += CONDITIONAL_EXPRESSION_DEQU_ALLOWED_TYPES
-        expr_type = self.parse_sides(left, right, tokens[0].ln, allowed_types, operator_str)
-        if expr_type == -1: return -1
-        self.ast.cur_node.type = expr_type
+        if self.parse_sides(left, right, tokens[0].ln, allowed_types, operator_str) == -1: return -1
+        self.ast.cur_node.type = ("bool",)
         self.ast.detraverse_node()
-        return expr_type
+        return ("bool",)
         
     def parse_binop_expression(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
@@ -698,6 +709,8 @@ class Parser():
             allowed_types += BINOP_EXPRESSION_PLUS_ALLOWED_TYPES
         if operator.token_t == "TT_mul":
             allowed_types += BINOP_EXPRESSION_MUL_ALLOWED_TYPES
+        if operator.token_t ==  "TT_mod":
+            allowed_types = BINOP_EXPRESSION_MOD_ALLOWED_TYPES
         left = tokens[:operator_index]
         right = tokens[operator_index+1:]
         self.ast.append_node(BinOpNode(get_token_ident(operator.token_t)), traversal_type)
@@ -772,7 +785,7 @@ class Parser():
             return -1
         return expr_type
 
-    def parse_un_op_expression(self, tokens: list[Token], traversal_type: str) -> str | int:
+    def parse_un_op_expression(self, tokens: list[Token], traversal_type: str, ln_num) -> str | int:
         """
         Takes the tokens representing the expression and the branch of the current node where the expression is situated
 
@@ -783,7 +796,9 @@ class Parser():
 
         Returns -1 on error, otherwise the type of the expression
         """
-        operator = "-" if tokens[0].token_t == "TT_sub" else "not"
+        operator = UNOP_OPERATOR_DICT[tokens[0].token_t]
+        if operator == "+":
+            return self.parse_expression(tokens[1:], traversal_type, ln_num)
         node_id = self.ast.append_node(UnOpNode(operator), traversal_type)
         self.ast.traverse_node_by_id(node_id, traversal_type)
         expr_type = self.parse_expression(tokens[1:], "right", tokens[0].ln, expr_1=False, expr_3=False, expr_4=False, expr_6=False)
@@ -964,7 +979,7 @@ class Parser():
                 self.error = TypeError("Invalid combination of types 'int', 'str'", ln_num, self.file_n)
                 return -1
             if self.is_valid_type(expr_type, ("float", "int")): 
-                return ("float")
+                return ("float",)
             self.error = TypeError(f"Invalid combination of types: '{expr_type[0]}', '{expr_type[1]}'", ln_num, self.file_n)
             return -1
         combinations = get_combinations(left_expr_type, right_expr_type)
@@ -1032,7 +1047,7 @@ class Parser():
         array_nodes = self.get_iter_nodes()
         self.ast.cur_node = cur_node
         if array_nodes == -1: return -1
-        if not isinstance(array_nodes[0], ASTNode):
+        if isinstance(array_nodes, tuple):
             return array_nodes
         types = []
         for array_node in array_nodes:
@@ -1087,6 +1102,7 @@ class Parser():
             self.ast.cur_node = cur_node
             return nodes
         if isinstance(self.ast.cur_node, FuncCallNode):
+            if self.ast.cur_node.name == "range": return ()
             self.ast.cur_node = self.func_identifier_dict[self.ast.cur_node.name]
             nodes = []
             cur_node = self.ast.cur_node
@@ -1212,14 +1228,27 @@ class Parser():
             line_tokens.append(line)
         return line_tokens
     
-    def var_args_checking(self, name: str, arg_types) -> bool:
+    def var_args_checking(self, name: str, arg_types: tuple, cur_ln_num: int) -> bool:
         if name not in VAR_ARG_BUILT_IN_FUNCS:
+            return False
+        if name == "strip":
+            if len(arg_types) == 1:
+                if self.is_valid_type(arg_types[0], ("str",)): return True
+                else:
+                    self.error = TypeError("Invalid argument type for function strip()", cur_ln_num, self.file_n)
+                    return False
+            if len(arg_types) == 2:
+                if self.is_valid_type(arg_types[0], ("str",) and self.is_valid_type(arg_types[1], ("str",))): return True
+                else:
+                    self.error = TypeError("Invalid argument type for function strip()", cur_ln_num, self.file_n)
+                    return False
             return False
         if name == "range":
             if len(arg_types) < 1 or len(arg_types) > 3:
                 return False
             for arg_type in arg_types:
                 if not self.is_valid_type(arg_type, ("int",)):
+                    self.error = TypeError("Invalid argument type for function range()", cur_ln_num, self.file_n)
                     return False
             return True
         if name == "input":

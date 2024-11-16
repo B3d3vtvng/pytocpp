@@ -32,7 +32,7 @@ temp_ast.cur_node.children[6].arg_types = [("int",), ("int",), ("int",)]
 temp_ast.cur_node.children[6].return_type = ("list",)
 temp_ast.append_node(FuncDefNode("strip", ["str", "strip"]))
 temp_ast.cur_node.children[7].arg_types = [("str",), ("str",)]
-temp_ast.cur_node.children[6].return_type = ("str",)
+temp_ast.cur_node.children[7].return_type = ("str",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",

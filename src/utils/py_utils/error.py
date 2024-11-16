@@ -70,3 +70,10 @@ class NameError(Error):
     """
     def __init__(self, error_v, error_ln, file_n) -> None:
         super().__init__("NameError", error_v, error_ln, file_n)
+
+class SizeError(Error):
+    """
+    Error to describe numbers exeeding the supported integer limit
+    """
+    def __init__(self, error_v, error_ln, file_n) -> None:
+        super().__init__("SizeError", error_v, error_ln, file_n)

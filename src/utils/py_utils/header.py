@@ -40,7 +40,7 @@ DEFAULT_HEADER = [
     "class RunTime {\n",
     "private:\n",
     "    void throw_rt_error(const std::string& error_msg) const{\n",
-    "        std::cout << __FILE__ << \" : RuntimeError: \" << error_msg << \"\\n\";\n",
+    "        std::cout << \"\\n\" << __FILE__ << \" : RuntimeError: \" << error_msg << \"\\n\\n\" << \"NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\\n\\n\";\n",
     "        exit(1);\n",
     "    }\n",
     "};\n",
@@ -71,7 +71,8 @@ HEADER_MODULES = [
     "vrange",
     "vslice",
     "vsub",
-    "vmod"
+    "vmod",
+    "vfloat"
 ]
 
 VALUE_INSERT_LINE = 35
@@ -101,6 +102,7 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "len": "vlen",
     "print": "vprint",
     "range": "vrange",
-    "strip": "vstrip"
+    "strip": "vstrip",
+    "float": "vfloat"
 }
 

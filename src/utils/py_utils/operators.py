@@ -51,6 +51,12 @@ UNOP_FUNC_NAMES_DICT = {
     "-": "vneg"
 }
 
+UNOP_OPERATOR_DICT = {
+    "TT_sub": "-",
+    "TT_not": "not",
+    "TT_plus": "+"
+}
+
 LOGICAL_EXPR_FUNC_NAMES_DICT = {
     "and": "vand",
     "or": "vor",
