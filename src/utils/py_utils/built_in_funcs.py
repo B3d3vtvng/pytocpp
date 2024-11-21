@@ -33,6 +33,9 @@ temp_ast.cur_node.children[6].return_type = ("list",)
 temp_ast.append_node(FuncDefNode("strip", ["str", "strip"]))
 temp_ast.cur_node.children[7].arg_types = [("str",), ("str",)]
 temp_ast.cur_node.children[7].return_type = ("str",)
+temp_ast.append_node(FuncDefNode("sqrt", ["num"]))
+temp_ast.cur_node.children[8].arg_types = [("int",)]
+temp_ast.cur_node.children[8].return_type = ("float",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",
@@ -42,7 +45,8 @@ BUILT_IN_FUNC_NAMES = [
     "str", 
     "float", 
     "range",
-    "strip"
+    "strip",
+    "sqrt"
 ]
 
 BUILT_IN_FUNC_DICT = {}
@@ -64,6 +68,7 @@ PY_TO_CPP_BUILT_IN_FUNC_DICT = {
     "str": "RunTime::tostr",
     "float": "RunTime::tofloat",
     "range": "RunTime::vrange",
-    "strip": "RunTime::vstrip"
+    "strip": "RunTime::vstrip",
+    "sqrt": "RunTime::vsqrt"
 }
     

@@ -6,6 +6,7 @@ DEFAULT_HEADER = [
     "#include <string>\n",
     "#include <vector>\n",
     "#include <sstream>\n",
+    "#include <cmath>\n",
     "\n",
     "class Value;\n",
     "\n",
@@ -75,9 +76,9 @@ HEADER_MODULES = [
     "vfloat"
 ]
 
-VALUE_INSERT_LINE = 35
+VALUE_INSERT_LINE = 36
 
-RUNTIME_INSERT_LINE = 44
+RUNTIME_INSERT_LINE = 45
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",
@@ -103,6 +104,7 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "print": "vprint",
     "range": "vrange",
     "strip": "vstrip",
-    "float": "vfloat"
+    "float": "vfloat",
+    "sqrt": "vsqrt"
 }
 

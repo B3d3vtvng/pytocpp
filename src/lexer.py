@@ -125,7 +125,9 @@ class Lexer():
 
                 token_idx = new_line.index(token_ident) + token_end_idx
                 token = self.make_kw_token(ln_index+1, token_idx, new_line, token_ident, token_name)
-                if not token: continue
+                if not token: 
+                    redo_tokens.remove([token_type, token_end_idx])
+                    continue
 
                 new_token_end_idx = token_end_idx + new_line.index(token_ident)+len(token_ident)
                 if token_ident not in line[new_token_end_idx:]:
