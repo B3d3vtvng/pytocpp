@@ -10,7 +10,7 @@
 
 ## Introduction
 
-This Project has been a dream of mine for about half a year now. Do not take this project and especially the code too serious as this is nothing but a toy project. I would be happy about tips for absolutely everything because this is my first real big project and I am the complete opposite of experienced.
+This Project has been a dream of mine for about half a year now. Do not take this project and especially the code too serious as this is nothing but a toy project. I would be happy about tipps for absolutely everything because this is my first real big project and I am the complete opposite of experienced.
 
 
 ## Features
