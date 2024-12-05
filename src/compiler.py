@@ -50,7 +50,7 @@ class Compiler():
         if component.error:
             print(component.error)
             print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n")
-            exit(error_code)
+            exit(1)
         return output
         
     def compile(self):

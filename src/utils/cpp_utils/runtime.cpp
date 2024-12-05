@@ -115,6 +115,25 @@ private:
     }
 
 public:
+    template<typename... Args>
+    static Value vindex_assign(const Args&... args) {
+        auto arg_input = std::make_tuple(args...);
+        value_t container_v = std::get<0>(arg_input).get_value();
+        Value assign = std::get<1>(arg_input);
+        std::vector<Value> container;
+        for (int i = 2; i < arg_input.size()-1; i++){
+            value_t idx_v = std::get<i>(arg_input);
+            long long idx = std::get<long long>(idx_v);
+            container = std::get<std::vector<Value> >(container_v);
+            container_v = container[idx];
+        }
+        container = std::get<std::vector<Value> >(container_v);
+        value_t idx_v = std::get<i>(arg_input)
+        long long idx = std::get<long long>(idx_v);
+        container[idx] = assign;
+        return Value(container);
+    }
+
     static Value vadd(const Value& val_1_v, const Value& val_2_v) {
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
@@ -693,3 +712,10 @@ public:
 };
 
 //#############################################User Programm#################################################
+
+int main(){
+    Value x = Value(std::vector<Value>{Value(1), Value(2), Value(3)});
+    x = RunTime::vindex_assign(x, Value(2), Value(0));
+
+    RunTime::vprint(x);
+}

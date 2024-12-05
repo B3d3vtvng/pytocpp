@@ -41,7 +41,7 @@ DEFAULT_HEADER = [
     "class RunTime {\n",
     "private:\n",
     "    void throw_rt_error(const std::string& error_msg) const{\n",
-    "        std::cout << \"\\n\" << __FILE__ << \" : RuntimeError: \" << error_msg << \"\\n\\n\" << \"NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\\n\\n\";\n",
+    "        std::cout << \"\\n\" << __FILE__ << \": RuntimeError: \" << error_msg << \"\\n\\n\" << \"NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\\n\\n\";\n",
     "        exit(1);\n",
     "    }\n",
     "};\n",
@@ -76,7 +76,7 @@ HEADER_MODULES = [
     "vfloat"
 ]
 
-VALUE_INSERT_LINE = 36
+VALUE_INSERT_LINE = 35
 
 RUNTIME_INSERT_LINE = 45
 

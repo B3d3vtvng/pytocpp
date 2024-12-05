@@ -84,11 +84,23 @@ class CodeGenerator():
         return generator_func
     
     def generate_assign(self, target_string: str, indentation: int) -> str:
-        type_annotator_str = "Value " if self.ast.cur_node.first_define else ""
-        output = f'{type_annotator_str}{self.ast.cur_node.name} = %;'
-        self.ast.traverse_node("value")
-        output = self.generate_node(output, in_expr = True)
-        self.ast.detraverse_node()
+        if self.ast.cur_node.left_expr.__class__.__name__ == "VarNode":
+            type_annotator_str = "Value " if self.ast.cur_node.first_define else ""
+            output = f'{type_annotator_str}{self.ast.cur_node.name} = %;'
+            self.ast.traverse_node("value")
+            output = self.generate_node(output, in_expr = True)
+            self.ast.detraverse_node()
+        else:
+            self.ast.traverse_node("value")
+            value = self.generate_node()
+            self.ast.detraverse_node()
+            self.ast.traverse_node("left_expr")
+            self.ast.traverse_node("content")
+            idx = self.generate_node()
+            self.ast.detraverse_node()
+            self.ast.detraverse_node()
+            self.include("vindex_assign")
+            output = f"{self.ast.cur_node.name} = RunTime::vindex_assign({self.ast.cur_node.name}, {value}, std::vector<Value>{{{idx}}});"
         return " " * indentation + target_string.replace("%", output)
     
     def generate_func_call(self, target_string: str, indentation: int, in_expr: bool = False) -> str:

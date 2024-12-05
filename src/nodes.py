@@ -193,6 +193,7 @@ class AssignNode(ASTNode):
         """
         super().__init__()
         self.name = name
+        self.left_expr = None
         self.value = None
         self.type = None
         self.children_types = []
@@ -200,10 +201,10 @@ class AssignNode(ASTNode):
         self.first_define = None
 
     def __repr__(self) -> str:
-        if self.value:
-            self.value.repr_offset = self.repr_offset + 2
+        self.value.repr_offset = self.repr_offset + 2
+        self.left_expr.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
-        return f"AssignNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Type: {self.type}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"AssignNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Left Expression[\n{tab_offset}        {self.left_expr}\n{tab_offset}    ]\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Type: {self.type}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class BinOpNode(ASTNode):
     def __init__(self, op: str) -> None:

@@ -26,6 +26,10 @@ SLICE_OPERATOR_PRECEDENCE_DICT = {
     "TT_colon": 1
 }
 
+ASSIGNMENT_OPERATOR_PRECEDENCE_DICT = {
+    "TT_equ": 1
+}
+
 EXPR_MAP = {
     0: True, #simple_literal
     1: True, #array_literal

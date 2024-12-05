@@ -7,7 +7,7 @@ parsing, most of the error handling and returns an ast
 
 
 from src.utils.py_utils.error import *
-from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
+from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
 from src.utils.py_utils.allowed_type_constants import *
@@ -98,7 +98,7 @@ class Parser():
         if cur_line_indentation == -1: return -1
         line = line[1:] if cur_line_indentation != 0 else line
 
-        if line[0].token_t == "TT_identifier" and line[1].token_t == "TT_equ":
+        if self.is_assign(line):
             if self.parse_assign(line) == -1: return -1
             return i+1
         elif line[0].token_t == "TT_identifier" and line[1].token_t == "TT_lparen" and line[len(line)-2].token_t == "TT_rparen":
@@ -542,9 +542,7 @@ class Parser():
         cur_ln_num = line[0].ln
         line = line[:len(line)-1]
         name = line[0].token_v
-        new_node_id = self.ast.append_node(AssignNode(line[0].token_v))
-        self.ast.traverse_node_by_id(new_node_id)
-        var_type = self.parse_expression(line[2:], "value", cur_ln_num, expr_4 = False)
+        var_type = self.parse_assignment_expression(line, "children", cur_ln_num)
         if var_type == -1:
             return -1
         if var_type != () and self.is_valid_type(var_type, ("list",)):
@@ -554,12 +552,6 @@ class Parser():
                 self.ast.cur_node.children_types = self.get_array_types()
             self.ast.cur_node.children_count = len(self.ast.cur_node.children_types)
         self.ast.cur_node.type = var_type
-        cur_var_identifier_dict = self.get_cur_scope_var_dict()
-        if name in cur_var_identifier_dict.keys():
-            self.ast.cur_node.first_define = False
-        else:
-            self.ast.cur_node.first_define = True
-        cur_var_identifier_dict[line[0].token_v] = self.ast.cur_node
         self.ast.detraverse_node()
         return 0
     
@@ -614,6 +606,35 @@ class Parser():
             return self.parse_slice_expression(tokens, traversal_type, ln_num)
         self.error = SyntaxError("Invalid Expression", ln_num, self.file_n)
         return -1
+
+    def parse_assignment_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> str | int:
+        tokens = self.merge_equ(tokens)
+        operator_idx = self.get_operator_info(tokens, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
+        left = tokens[:operator_idx]
+        right = tokens[operator_idx+1:]
+        new_node_id = self.ast.append_node(AssignNode(tokens[0].token_v))
+        self.ast.traverse_node_by_id(new_node_id)
+        cur_var_identifier_dict = self.get_cur_scope_var_dict()
+        if left[0].token_v in cur_var_identifier_dict.keys():
+            old_def = cur_var_identifier_dict[left[0].token_v]
+            self.ast.cur_node.first_define = False
+        else:
+            self.ast.cur_node.first_define = True
+        cur_var_identifier_dict[left[0].token_v] = self.ast.cur_node
+        expr_type = self.parse_expression(right, "value", ln_num, expr_4=False)
+        if expr_type == -1: return -1
+        if self.parse_expression(left, "left_expr", ln_num, expr_1=False, expr_2=False, expr_4=False, expr_5=False, expr_6=False, expr_7=False, expr_8=False) == -1:
+            self.error = SyntaxError("Invalid left-side indexing expression", ln_num, self.file_n)
+            return -1
+        if self.ast.cur_node.left_expr.__class__.__name__ == "ArrayVarNode":
+            if self.ast.cur_node.first_define:
+                self.error = SyntaxError("Invalid Syntax", ln_num, self.file_n)
+                return -1
+            if not self.is_valid_type(old_def.type, ("list", "str")):
+                self.error = TypeError("Cannot index non-container type", ln_num, self.file_n)
+                return -1
+
+        return expr_type
 
     def parse_slice_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> str | int:
         """
@@ -998,6 +1019,8 @@ class Parser():
         
         Returns True if the first tuple is a sublist of the second, otherwise False
         """
+        if t1 == None:
+            return True
         if len(t1) > len(t2):
             return False
         if len(t1) > 1:
@@ -1270,4 +1293,13 @@ class Parser():
                 return False
 
         return True
-        
+    
+    def is_assign(self, line: list[Token]) -> bool:
+        if line[0].token_t == "TT_identifier" and line[1].token_t == "TT_equ":
+            return True
+        line = self.merge_equ(line)
+        if not [token for token in line if token.token_t == "TT_equ"]:
+            return False
+        operator_idx = self.get_operator_info(line, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
+        left = line[:operator_idx]
+        return self.is_array_expression(left)
