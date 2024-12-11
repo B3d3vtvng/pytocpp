@@ -53,7 +53,7 @@ class CodeGenerator():
     
     def generate_node(self, target_string: str = "%", indentation: int = 0, **kw_args) -> str:
         """
-        Generates code fot the current node in the ast and inserts it into the string at the position specified by the % character
+        Generates code for the current node in the ast and inserts it into the string at the position specified by the % character
 
         Takes the target string to generate code for the current node and the current indentation\n
         Returns the given string with the generated code at the specified place

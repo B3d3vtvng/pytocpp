@@ -5,6 +5,7 @@ Takes care of all
 parsing, most of the error handling and returns an ast
 """
 
+from copy import deepcopy
 
 from src.utils.py_utils.error import *
 from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
@@ -551,7 +552,6 @@ class Parser():
             elif (self.ast.cur_node.value.__class__.__name__ == "FuncCallNode" and self.ast.cur_node.value.name != "range"):
                 self.ast.cur_node.children_types = self.get_array_types()
             self.ast.cur_node.children_count = len(self.ast.cur_node.children_types)
-        self.ast.cur_node.type = var_type
         self.ast.detraverse_node()
         return 0
     
@@ -586,9 +586,9 @@ class Parser():
             cur_expr_map[kw_int] = False
         if cur_expr_map[0] and len(tokens) == 1:
             return self.parse_simple_literal_and_var(tokens[0], traversal_type)
-        if cur_expr_map[1] and self.is_array_expression(tokens, isliteral=True):
+        if cur_expr_map[1] and self.is_array_literal(tokens):
             return self.parse_array_literal(tokens, traversal_type)
-        if len(tokens) >= 3 and cur_expr_map[3] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lbracket" and tokens[len(tokens)-1].token_t == "TT_rbracket" and self.is_array_expression(tokens):
+        if len(tokens) >= 3 and cur_expr_map[3] and self.is_array_var(tokens):
             return self.parse_array_var(tokens, traversal_type)
         if len(tokens) >= 3 and cur_expr_map[5] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lparen" and tokens[len(tokens)-1].token_t == "TT_rparen" and self.is_func_call(tokens):
             if self.parse_func_call(tokens, traversal_type, from_expr=True) == -1: return -1
@@ -622,6 +622,7 @@ class Parser():
             self.ast.cur_node.first_define = True
         cur_var_identifier_dict[left[0].token_v] = self.ast.cur_node
         expr_type = self.parse_expression(right, "value", ln_num, expr_4=False)
+        self.ast.cur_node.type = expr_type
         if expr_type == -1: return -1
         if self.parse_expression(left, "left_expr", ln_num, expr_1=False, expr_2=False, expr_4=False, expr_5=False, expr_6=False, expr_7=False, expr_8=False) == -1:
             self.error = SyntaxError("Invalid left-side indexing expression", ln_num, self.file_n)
@@ -856,19 +857,47 @@ class Parser():
         if not self.is_valid_type(var_dec_node.type, ("str", "list")):
             self.error = TypeError(f"{var_dec_node.type} object is not subscriptable", cur_ln_num, self.file_n)
             return -1
+        content_exprs = self.get_content_expressions(tokens[1:])
+        if content_exprs == -1: return -1
         tokens = tokens[2:len(tokens)-1]
-        if not tokens:
-            self.error = SyntaxError("Invalid Syntax", cur_ln_num, self.file_n)
-            return -1
         node_id = self.ast.append_node(ArrayVarNode(var_identifier), traversal_type)
         self.ast.traverse_node_by_id(node_id, traversal_type)
-        expr_type = self.parse_expression(tokens, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False)
-        if expr_type == -1: return -1
-        if not self.is_valid_type(expr_type, ("int",)):
-            self.error = TypeError(f"list indices must be of type int, not {expr_type}", cur_ln_num, self.file_n)
-            return -1
+        for content_expr in content_exprs:
+            expr_type = self.parse_expression(content_expr, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False)
+            if expr_type == -1: return -1
+            if not self.is_valid_type(expr_type, ("int",)):
+                self.error = TypeError(f"list indices must be of type int, not {expr_type}", cur_ln_num, self.file_n)
+                return -1 
         self.ast.detraverse_node()
-        return ()
+        return () #Return empty tuple to mark variable as any type as empty tuple will pass all is_valid_type() checks
+    
+    def get_content_expressions(self, tokens: list[Token]) -> list[list[Token]] | int:
+        content_expressions = []
+        cur_content_expr = []
+        bracket_depth = 0
+        for token in tokens:
+            if token.token_t == "TT_lbracket": 
+                bracket_depth += 1
+                continue
+            if token.token_t == "TT_rbracket":
+                if bracket_depth == 0:
+                    self.error = SyntaxError("']' was never opened", token.ln, self.file_n)
+                    return -1
+                if bracket_depth == 1:
+                    content_expressions.append(cur_content_expr)
+                    cur_content_expr = []
+                bracket_depth -= 1
+                continue
+            if bracket_depth == 0 and token.token_t != "TT_lbracket":
+                self.error = SyntaxError("Unexpected Token", token.ln, self.file_n)
+                return -1
+            cur_content_expr.append(token)
+        if bracket_depth:
+            self.error = SyntaxError("'[' was never closed", tokens[0].ln, self.file_n)
+            return -1
+
+        return content_expressions
+
         
     def parse_array_literal(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
@@ -988,6 +1017,8 @@ class Parser():
 
         Returns -1 on error
         """
+        if left_expr_type == None or right_expr_type == None:
+            return ()
         types = []
         if operator in ("==", "!="):
             return ("bool",)
@@ -1031,7 +1062,7 @@ class Parser():
             return False
         return True
 
-    def is_array_expression(self, tokens: list[Token], isliteral: bool = False) -> bool:
+    def is_array_literal(self, tokens: list[Token]) -> bool:
         """
         Takes the tokens to check and the fact if we are checking for an array literal or an indexing expression
 
@@ -1041,7 +1072,7 @@ class Parser():
 
         Returns True if no bracket has been closed on the lowest bracket depth, otherwise False
         """
-        if isliteral and tokens[0].token_t != "TT_lbracket" or tokens[-1].token_t != "TT_rbracket":
+        if tokens[0].token_t != "TT_lbracket" or tokens[-1].token_t != "TT_rbracket":
             return False
         bracket_depth = 0
         for i, token in enumerate(tokens):
@@ -1053,6 +1084,19 @@ class Parser():
                         bracket_depth -= 1
                     else:
                         return False
+        return True
+
+    def is_array_var(self, tokens: list[Token]) -> bool:
+        if tokens[0].token_t != "TT_identifier": return False
+        tokens = tokens[1:]
+        bracket_depth = 0
+        for token in tokens:
+            if token.token_t == "TT_lbracket":
+                bracket_depth += 1
+            if token.token_t == "TT_rbracket":
+                if bracket_depth == 0: return False
+            if bracket_depth == 0 and token.token_t != "TT_lbracket": return False
+
         return True
     
     def get_array_types(self) -> list[str]:
@@ -1295,11 +1339,12 @@ class Parser():
         return True
     
     def is_assign(self, line: list[Token]) -> bool:
-        if line[0].token_t == "TT_identifier" and line[1].token_t == "TT_equ":
+        line_copy = deepcopy(line)
+        if line_copy[0].token_t == "TT_identifier" and line_copy[1].token_t == "TT_equ":
             return True
-        line = self.merge_equ(line)
-        if not [token for token in line if token.token_t == "TT_equ"]:
+        line_copy = self.merge_equ(line_copy)
+        if not [token for token in line_copy if token.token_t == "TT_equ"]:
             return False
-        operator_idx = self.get_operator_info(line, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
-        left = line[:operator_idx]
-        return self.is_array_expression(left)
+        operator_idx = self.get_operator_info(line_copy, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
+        left = line_copy[:operator_idx]
+        return self.is_array_var(left)

@@ -158,14 +158,16 @@ class ArrayVarNode(ASTNode):
         super().__init__()
         self.name = name
         self.element_count = None
-        self.content = None
+        self.content = []
         self.type = "list"
 
     def __repr__(self) -> str:
-        if self.content:
-            self.content.repr_offset = self.repr_offset+2
+        idx_str = ""
+        for idx in self.content:
+            idx.repr_offset = self.repr_offset + 2
+            idx_str += f"\n{"    " * idx.repr_offset}{idx}"
         tab_offset = "    " * self.repr_offset
-        return f"ArrayVarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Content[\n{tab_offset}        {self.content}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"ArrayVarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Content[{idx_str}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class SliceExpressionNode(ASTNode):
     def __init__(self) -> None:
