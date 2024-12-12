@@ -96,11 +96,11 @@ class CodeGenerator():
             self.ast.detraverse_node()
             self.ast.traverse_node("left_expr")
             self.ast.traverse_node("content")
-            idx = self.generate_node()
+            idx_expr = self.generate_idx_expr()
             self.ast.detraverse_node()
             self.ast.detraverse_node()
             self.include("vindex_assign")
-            output = f"{self.ast.cur_node.name} = RunTime::vindex_assign({self.ast.cur_node.name}, {value}, std::vector<Value>{{{idx}}});"
+            output = f"{self.ast.cur_node.name} = RunTime::vindex_assign({self.ast.cur_node.name}, {value}, std::vector<Value>{{{idx_expr}}});"
         return " " * indentation + target_string.replace("%", output)
     
     def generate_func_call(self, target_string: str, indentation: int, in_expr: bool = False) -> str:
@@ -169,9 +169,19 @@ class CodeGenerator():
             return target_string.replace("%", f"RunTime::vslice({self.ast.cur_node.name}, {left}, {right})")
         
         self.include("vindex")
-        index = self.generate_node()
+        idx_expr = self.generate_idx_expr()
         self.ast.detraverse_node()
-        return target_string.replace("%", f"RunTime::vindex({self.ast.cur_node.name}, {index})")
+        return target_string.replace("%", f"RunTime::vindex({self.ast.cur_node.name}, std::vector<Value>{{{idx_expr}}})")
+
+    def generate_idx_expr(self) -> str:
+        idx_expr = ""
+        while True:
+            idx_expr += self.generate_node()
+            if self.ast.next_child_node("content") == -1:
+                break
+            idx_expr += ", "
+
+        return idx_expr
     
     def generate_bin_op(self, target_string: str, indentation: int, **kw_args) -> str:
         self.ast.traverse_node("left")

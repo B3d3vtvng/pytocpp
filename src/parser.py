@@ -620,7 +620,7 @@ class Parser():
             self.ast.cur_node.first_define = False
         else:
             self.ast.cur_node.first_define = True
-        cur_var_identifier_dict[left[0].token_v] = self.ast.cur_node
+            cur_var_identifier_dict[left[0].token_v] = self.ast.cur_node
         expr_type = self.parse_expression(right, "value", ln_num, expr_4=False)
         self.ast.cur_node.type = expr_type
         if expr_type == -1: return -1
@@ -634,6 +634,7 @@ class Parser():
             if not self.is_valid_type(old_def.type, ("list", "str")):
                 self.error = TypeError("Cannot index non-container type", ln_num, self.file_n)
                 return -1
+        cur_var_identifier_dict[left[0].token_v] = self.ast.cur_node
 
         return expr_type
 
@@ -1017,7 +1018,7 @@ class Parser():
 
         Returns -1 on error
         """
-        if left_expr_type == None or right_expr_type == None:
+        if left_expr_type == None or right_expr_type == None or () in left_expr_type or () in right_expr_type:
             return ()
         types = []
         if operator in ("==", "!="):

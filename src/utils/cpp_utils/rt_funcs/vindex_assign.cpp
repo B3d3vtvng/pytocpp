@@ -1,4 +1,4 @@
-static Value vindex_assign(const Value container_v, const Value assign, std::vector<Value> idxs_v){
+    static Value vindex_assign(const Value container_v, const Value assign, std::vector<Value> idxs_v){
         value_t container = container_v.get_value();
         if (!std::holds_alternative<long long>(idxs_v[0].get_value())){
             RunTime runtime;
@@ -18,7 +18,9 @@ static Value vindex_assign(const Value container_v, const Value assign, std::vec
                 return Value(container_vec);
             }
             idxs_v.erase(idxs_v.begin());
-            return vindex_assign(Value(container_vec), assign, idxs_v);
+            Value new_vec = vindex_assign(container_vec[idx], assign, idxs_v);
+            container_vec[idx] = new_vec;
+            return Value(container_vec);
         }
         else if (std::holds_alternative<std::string>(container_v.get_value())){
             if (!std::holds_alternative<std::string>(assign.get_value())){
@@ -42,8 +44,9 @@ static Value vindex_assign(const Value container_v, const Value assign, std::vec
                 container_str.insert(idx, std::get<std::string>(assign.get_value()));
                 return Value(container_str);
             }
-            idxs_v.erase(idxs_v.begin());
-            return vindex_assign(Value(container_str), assign, idxs_v);
+            RunTime runtime;
+            runtime.throw_rt_error("Cannot assign value to index of non-container type");
+            return Value(none{});
         }
         else{
             RunTime runtime;
