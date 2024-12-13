@@ -7,6 +7,13 @@ Implements all necessary nodes and the AST class itself
 
 from __future__ import annotations
 
+def format_type(tup: tuple) -> str:
+    if not tup:
+        return "Any"
+    if len(tup) == 1:
+        return ''.join([char for char in tup.__str__()[1:-2] if char != "'"])
+    return ''.join([char for char in tup.__str__()[1:-1] if char != "'"])
+
 class ASTNode():
     def __init__(self):
         """
@@ -78,7 +85,7 @@ class NumberNode(ASTNode):
         
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
-        return f"NumberNode[\n{tab_offset}    Value: {self.value}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"NumberNode[\n{tab_offset}    Value: {self.value}\n{tab_offset}    Type: {self.type}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class StringNode(ASTNode):
     def __init__(self, value: str) -> None:
@@ -148,7 +155,7 @@ class VarNode(ASTNode):
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
-        return f"VarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Type: {self.type}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"VarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Type: {format_type(self.type)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ArrayVarNode(ASTNode):
     def __init__(self, name: str):
@@ -203,10 +210,12 @@ class AssignNode(ASTNode):
         self.first_define = None
 
     def __repr__(self) -> str:
-        self.value.repr_offset = self.repr_offset + 2
-        self.left_expr.repr_offset = self.repr_offset + 2
+        if self.value != None:
+            self.value.repr_offset = self.repr_offset + 2
+        if self.left_expr != None:
+            self.left_expr.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
-        return f"AssignNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Left Expression[\n{tab_offset}        {self.left_expr}\n{tab_offset}    ]\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Type: {self.type}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"AssignNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Left Expression[\n{tab_offset}        {self.left_expr}\n{tab_offset}    ]\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Type: {format_type(self.type)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class BinOpNode(ASTNode):
     def __init__(self, op: str) -> None:
@@ -302,12 +311,8 @@ class FuncDefNode(ASTNode):
         else:
             child_len = 0
         arg_str = ", ".join(self.arg_names)
-        node_str = ""
-        for node in self.return_nodes:
-            node.repr_offset = self.repr_offset + 2
-            node_str += f"\n{"    " * node.repr_offset}{node}"
         
-        return f"FuncDefNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args: {arg_str}\n{tab_offset}    Return Values[{node_str}\n{tab_offset}    ]\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {child_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+        return f"FuncDefNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Args: {arg_str}\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {child_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class ReturnNode(ASTNode):
     def __init__(self) -> None:

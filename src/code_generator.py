@@ -141,7 +141,7 @@ class CodeGenerator():
         child_len = len(self.ast.cur_node.children)
         self.ast.traverse_node()
         for _ in range(child_len):
-            elements.append(self.generate_node())
+            elements.append(self.generate_node(in_expr=True))
             self.ast.next_child_node()
         self.ast.detraverse_node()
         return target_string.replace("%", "Value(std::vector<Value>{" + ''.join([element + ", " if elements.index(element) != len(elements)-1 else element for element in elements]) + "})")

@@ -13,9 +13,16 @@ def compile():
     if cmdl_handler.error:
         print(cmdl_handler.error)
         return 1
-    compiler = Compiler(file_n, flags)
-    compiler.compile()
-    return 0
+    try:
+        compiler = Compiler(file_n, flags)
+        compiler.compile()
+        return 0
+    except Exception as e:
+        if "-v" in flags.keys():
+            raise e
+        else:
+            print("\nAn unknown error has occured, please use -v flag for a more detailed error message\n")
+            return 1
 
 return_code = compile()
 exit(return_code)

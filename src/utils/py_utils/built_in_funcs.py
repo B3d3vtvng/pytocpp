@@ -36,6 +36,21 @@ temp_ast.cur_node.children[7].return_type = ("str",)
 temp_ast.append_node(FuncDefNode("sqrt", ["num"]))
 temp_ast.cur_node.children[8].arg_types = [("int",)]
 temp_ast.cur_node.children[8].return_type = ("float",)
+temp_ast.append_node(FuncDefNode("fread", ["fname"]))
+temp_ast.cur_node.children[9].arg_types = [("str",)]
+temp_ast.cur_node.children[9].return_type = ("str",)
+temp_ast.append_node(FuncDefNode("freadlines", ["fname"]))
+temp_ast.cur_node.children[9].arg_types = [("str",)]
+temp_ast.cur_node.children[9].return_type = ("list",)
+temp_ast.append_node(FuncDefNode("fcreate", ["fname"]))
+temp_ast.cur_node.children[9].arg_types = [("str",)]
+temp_ast.cur_node.children[9].return_type = ("none",)
+temp_ast.append_node(FuncDefNode("fwrite", ["fname", "finput"]))
+temp_ast.cur_node.children[10].arg_types = [("str",), ("str",)]
+temp_ast.cur_node.children[10].return_type = ("none",)
+temp_ast.append_node(FuncDefNode("fwrite", ["fname", "finput"]))
+temp_ast.cur_node.children[11].arg_types = [("str",), ("list",)]
+temp_ast.cur_node.children[11].return_type = ("none",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",
@@ -46,7 +61,12 @@ BUILT_IN_FUNC_NAMES = [
     "float", 
     "range",
     "strip",
-    "sqrt"
+    "sqrt",
+    "fread",
+    "freadlines",
+    "fcreate",
+    "fwrite",
+    "fwritelines"
 ]
 
 BUILT_IN_FUNC_DICT = {}
@@ -69,6 +89,11 @@ PY_TO_CPP_BUILT_IN_FUNC_DICT = {
     "float": "RunTime::tofloat",
     "range": "RunTime::vrange",
     "strip": "RunTime::vstrip",
-    "sqrt": "RunTime::vsqrt"
+    "sqrt": "RunTime::vsqrt",
+    "fread": "RunTime::fread",
+    "freadlines": "RunTime::freadlines",
+    "fcreate": "RunTime::fcreate",
+    "fwrite": "RunTime::fwrite",
+    "fwritelines": "RunTime::fwritelines"
 }
     

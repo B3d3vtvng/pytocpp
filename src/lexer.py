@@ -49,7 +49,7 @@ class Lexer():
             if "#" in line:
                 line = line[:line.index('#')]
                 self.raw_code.pop(i)
-                self.raw_code[i] = line
+                self.raw_code.insert(i, line)
         kw_tokens = self.make_kw_tokens()
         res = self.make_typed_tokens(kw_tokens)
         if not res:

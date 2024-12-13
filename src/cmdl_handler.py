@@ -2,7 +2,7 @@ from src.utils.py_utils.error import FileError, FlagError
 import sys
 
 HELP_MSG = "Usage: python3 main.py [flags (flag args)] [target filename]"
-FLAGS = ["--show-ast", "--show-tokens", "-o"]
+FLAGS = ["--show-ast", "--show-tokens", "-o", "-v"]
 
 
 class CommandlineHandler():
@@ -27,7 +27,6 @@ class CommandlineHandler():
         file_n = self.argv.pop(-1)
         flags = {}
         for i, arg in enumerate(self.argv):
-            print(arg)
             if arg in FLAGS:
                 flags[arg] = None
             else:
