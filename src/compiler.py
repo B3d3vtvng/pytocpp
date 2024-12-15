@@ -34,7 +34,7 @@ class Compiler():
             return self.flags["-o"]
         
     #wrapper function to handle errors in a clean way :)
-    def run_component(self, component: object, function: callable, error_code) -> any:
+    def run_component(self, component: object, function: callable, error_code, haswarning=False) -> any:
         """
         Purpose: Runs a compiler component and checks if errors have occured within and handles them accordingly
 
@@ -50,7 +50,12 @@ class Compiler():
         if component.error:
             print(component.error)
             print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n")
-            exit(1)
+            exit(error_code)
+        
+        if haswarning and component.warning and "--disable-w" not in self.flags.keys():
+            print(component.warning)
+            print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n")
+        
         return output
         
     def compile(self):
@@ -64,7 +69,7 @@ class Compiler():
         if "--show-tokens" in self.flags.keys():
             print(tokens)
         parser = Parser(tokens, self.file_n)
-        ast, func_identifier_dict = self.run_component(parser, parser.make_ast, 3)
+        ast, func_identifier_dict = self.run_component(parser, parser.make_ast, 3, haswarning=True)
         ast_optimizer = ASTOptimizationPass(ast, func_identifier_dict)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
         if "--show-ast" in self.flags.keys():

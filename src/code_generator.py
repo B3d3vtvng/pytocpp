@@ -1,6 +1,6 @@
 from typing import TextIO
 from src.utils.py_utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
-from src.utils.py_utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT
+from src.utils.py_utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER
 from src.utils.py_utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
 
@@ -34,7 +34,7 @@ class CodeGenerator():
         return new_file
 
     def generate_code(self) -> None:
-        output = "int main(){\n%\n    return 0;\n}"
+        output = MAIN_WRAPPER
         generated_output = ""
         for i in range(len(self.ast.base_node.children)):
             self.ast.cur_node = self.ast.base_node.children[i]

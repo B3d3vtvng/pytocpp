@@ -28,6 +28,7 @@ TOKEN_TYPES = {
     "LESS": ("TT_less", "<"),
     "COMMA": ("TT_comma", ","),
     "COLON": ("TT_colon", ":"),
+    "DOT": ("TT_dot", "."),
     "DQUOTE": ("TT_dquote", '"'),
     "SQUOTE": ("TT_squote", "'"),
     "DEF": ("TT_def", "def"),
@@ -47,7 +48,7 @@ TOKEN_TYPES = {
 KEYWORDS = [
     "DEF",
     "EXTERN",
-    "RET", 
+    "RETURN", 
     "IF", 
     "NOT", 
     "ELIF", 

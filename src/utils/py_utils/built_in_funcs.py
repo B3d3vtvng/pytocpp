@@ -48,9 +48,18 @@ temp_ast.cur_node.children[9].return_type = ("none",)
 temp_ast.append_node(FuncDefNode("fwrite", ["fname", "finput"]))
 temp_ast.cur_node.children[10].arg_types = [("str",), ("str",)]
 temp_ast.cur_node.children[10].return_type = ("none",)
-temp_ast.append_node(FuncDefNode("fwrite", ["fname", "finput"]))
+temp_ast.append_node(FuncDefNode("fwritelines", ["fname", "finput"]))
 temp_ast.cur_node.children[11].arg_types = [("str",), ("list",)]
 temp_ast.cur_node.children[11].return_type = ("none",)
+temp_ast.append_node(FuncDefNode("exit", ["exit_code"]))
+temp_ast.cur_node.children[12].arg_types = [("int",)]
+temp_ast.cur_node.children[12].return_type = ("none",)
+temp_ast.append_node(FuncDefNode("list", ["str_input"]))
+temp_ast.cur_node.children[13].arg_types = [("str",)]
+temp_ast.cur_node.children[13].return_type = ("list",)
+temp_ast.append_node(FuncDefNode("os_run", ["command"]))
+temp_ast.cur_node.children[13].arg_types = [("str",)]
+temp_ast.cur_node.children[13].return_type = ("int",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",
@@ -66,7 +75,10 @@ BUILT_IN_FUNC_NAMES = [
     "freadlines",
     "fcreate",
     "fwrite",
-    "fwritelines"
+    "fwritelines",
+    "exit",
+    "list",
+    "os_run"
 ]
 
 BUILT_IN_FUNC_DICT = {}
@@ -77,7 +89,8 @@ VAR_ARG_BUILT_IN_FUNCS = [
     "print",
     "input",
     "range",
-    "strip"
+    "strip",
+    "exit"
 ]
 
 PY_TO_CPP_BUILT_IN_FUNC_DICT = {
@@ -94,6 +107,9 @@ PY_TO_CPP_BUILT_IN_FUNC_DICT = {
     "freadlines": "RunTime::freadlines",
     "fcreate": "RunTime::fcreate",
     "fwrite": "RunTime::fwrite",
-    "fwritelines": "RunTime::fwritelines"
+    "fwritelines": "RunTime::fwritelines",
+    "exit": "RunTime::__exit",
+    "list": "RunTime::vlist",
+    "os_run": "RunTime::os_run"
 }
     

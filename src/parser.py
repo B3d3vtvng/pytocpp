@@ -8,6 +8,7 @@ parsing, most of the error handling and returns an ast
 from copy import deepcopy
 
 from src.utils.py_utils.error import *
+from src.utils.py_utils.header import INVALID_VAR_NAMES, INVALID_FUNC_NAMES
 from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
 from src.utils.py_utils.tokens import Token
 from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
@@ -43,13 +44,25 @@ class Parser():
         ast: Main instance of AST(), later returned by make_ast()
         """
         self.error = None
+        self.warning = None
         self.tokens = tokens
         self.file_n = file_n
         self.func_identifier_dict = BUILT_IN_FUNC_DICT.copy()
         self.var_identifier_dict = {}
+        self.invalid_var_identifier_dict = {}
+        self.invalid_func_identifier_dict = {}
         self.indentation = None
         self.cur_block_indentation = None
         self.ast = AST()
+        self.ast_init()
+
+    def ast_init(self) -> None:
+        self.ast.append_node(AssignNode("argc"))
+        self.ast.base_node.children[0].type = ("int",)
+        self.ast.append_node(AssignNode("argv"))
+        self.ast.base_node.children[1].type = ("list",)
+        self.var_identifier_dict["argc"] = self.ast.base_node.children[0]
+        self.var_identifier_dict["argv"] = self.ast.base_node.children[1]
 
     def make_ast(self) -> AST:
         """
@@ -58,6 +71,8 @@ class Parser():
         """
         if self.parse_block(self.tokens) == -1:
             return None
+        self.ast.base_node.children = self.ast.base_node.children[2:]
+        
         return self.ast, self.func_identifier_dict
     
     #################################General Parsing######################################
@@ -181,9 +196,13 @@ class Parser():
             self.error = SyntaxError("Expected identifier", cur_ln_num, self.file_n)
             return -1
         func_identifier, line = line[0].token_v, line[1:]
-        if func_identifier in BUILT_IN_FUNC_NAMES:
-            self.error = NameError(f"Cannot overwrite built-in function {func_identifier}()", cur_ln_num, self.file_n)
-            return -1
+        if func_identifier in BUILT_IN_FUNC_NAMES or func_identifier in INVALID_FUNC_NAMES:
+            if func_identifier in BUILT_IN_FUNC_NAMES:
+                self.warning = Warning(f"Overwriting built-in function {func_identifier}() might lead to unexpected behavior", cur_ln_num, self.file_n)
+            self.invalid_func_identifier_dict[func_identifier] = "_" + func_identifier
+            while self.invalid_func_identifier_dict[func_identifier] in self.invalid_func_identifier_dict.keys():
+                self.invalid_func_identifier_dict[func_identifier] = "_" + self.invalid_func_identifier_dict[func_identifier]
+            func_identifier = self.invalid_func_identifier_dict[func_identifier]
         if line[0].token_t != "TT_lparen" or line[len(line)-1].token_t != "TT_rparen":
             self.error = SyntaxError("Expected parenthesis", cur_ln_num, self.file_n)
             return -1
@@ -398,6 +417,8 @@ class Parser():
         """
         cur_ln_num = line[0].ln
         name = line[0].token_v
+        if name in self.invalid_func_identifier_dict.keys():
+            name = self.invalid_func_identifier_dict[name]
         if name not in self.func_identifier_dict.keys():
             self.error = NameError(f"Call to undefined function {name}()", cur_ln_num, self.file_n) 
             return -1
@@ -422,6 +443,8 @@ class Parser():
             self.ast.append_node(StringNode(" "), "args")
         elif not arg_exprs and name == "print":
             self.ast.append_node(StringNode(""), "args")
+        elif not arg_exprs and name == "exit":
+            self.ast.append_node(NumberNode(0), "args")
         last_func_def_node = self.func_identifier_dict[name]
         var_args = self.var_args_checking(name, arg_types, cur_ln_num)
         if self.error: return -1
@@ -543,6 +566,13 @@ class Parser():
         cur_ln_num = line[0].ln
         line = line[:len(line)-1]
         name = line[0].token_v
+        if name in ("argc", "argv"):
+            self.warning = Warning(f"Overwriting built-in constant '{name}' might lead to unexpected behavior", cur_ln_num, self.file_n)
+        if name in INVALID_VAR_NAMES:
+            self.invalid_var_identifier_dict[name] = "_" + name
+            while self.invalid_var_identifier_dict[name] in self.invalid_var_identifier_dict.keys():
+                self.invalid_var_identifier_dict[name] = "_" + self.invalid_var_identifier_dict[name]
+            name = self.invalid_var_identifier_dict[name]
         var_type = self.parse_assignment_expression(line, "children", cur_ln_num)
         if var_type == -1:
             return -1
@@ -609,13 +639,20 @@ class Parser():
 
     def parse_assignment_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> str | int:
         tokens = self.merge_equ(tokens)
+        name = tokens[0].token_v
+        if name in INVALID_VAR_NAMES:
+            self.invalid_var_identifier_dict[name] = "_" + name
+            while self.invalid_var_identifier_dict[name] in self.invalid_var_identifier_dict.keys():
+                self.invalid_var_identifier_dict[name] = "_" + self.invalid_var_identifier_dict[name]
+            name = self.invalid_var_identifier_dict[name]
+            tokens[0].token_v = name
         operator_idx = self.get_operator_info(tokens, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
         left = tokens[:operator_idx]
         right = tokens[operator_idx+1:]
-        new_node_id = self.ast.append_node(AssignNode(tokens[0].token_v))
+        new_node_id = self.ast.append_node(AssignNode(name))
         self.ast.traverse_node_by_id(new_node_id)
         cur_var_identifier_dict = self.get_cur_scope_var_dict()
-        if left[0].token_v in cur_var_identifier_dict.keys():
+        if name in cur_var_identifier_dict.keys():
             old_def = cur_var_identifier_dict[left[0].token_v]
             self.ast.cur_node.first_define = False
         else:
@@ -849,6 +886,8 @@ class Parser():
         """
         cur_ln_num = tokens[0].ln
         var_identifier = tokens[0].token_v
+        if var_identifier in self.invalid_var_identifier_dict.keys():
+            var_identifier = self.invalid_var_identifier_dict[var_identifier]
         cur_var_identifier_dict = self.get_cur_scope_var_dict()
         if var_identifier not in cur_var_identifier_dict:
             self.error = NameError(f"Name {var_identifier} is not defined", cur_ln_num, self.file_n)
@@ -974,13 +1013,16 @@ class Parser():
             self.ast.append_node(NoneNode(), traversal_type)
             return ("none",)
         if token.token_t == "TT_identifier":
+            name = token.token_v
+            if name in self.invalid_var_identifier_dict.keys():
+                name = self.invalid_var_identifier_dict[name]
             cur_var_identifier_dict = self.get_cur_scope_var_dict()
-            if token.token_v not in cur_var_identifier_dict.keys():
-                self.error = NameError(f"Unknown Identifier: '{token.token_v}'", token.ln, self.file_n)
+            if name not in cur_var_identifier_dict.keys():
+                self.error = NameError(f"Unknown Identifier: '{name}'", token.ln, self.file_n)
                 return -1
-            new_node_id = self.ast.append_node(VarNode(token.token_v), traversal_type)
+            new_node_id = self.ast.append_node(VarNode(name), traversal_type)
             self.ast.traverse_node_by_id(new_node_id, traversal_type)
-            cur_node_type = cur_var_identifier_dict[token.token_v].type
+            cur_node_type = cur_var_identifier_dict[name].type
             self.ast.cur_node.type = cur_node_type
             self.ast.detraverse_node()
             return cur_node_type
@@ -1322,6 +1364,11 @@ class Parser():
         if name == "input":
             if len(arg_types) > 1:
                 return False
+        if name == "exit":
+            if len(arg_types) > 1:
+                return False
+            if arg_types and not self.is_valid_type(arg_types[0], ("int",)):
+                return False
         return True
     
     def is_func_call(self, tokens: list[Token]) -> bool:
@@ -1348,4 +1395,4 @@ class Parser():
             return False
         operator_idx = self.get_operator_info(line_copy, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
         left = line_copy[:operator_idx]
-        return self.is_array_var(left)
+        return self.is_array_var(left) # type: ignore

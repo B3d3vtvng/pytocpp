@@ -8,6 +8,7 @@ DEFAULT_HEADER = [
     "#include <sstream>\n",
     "#include <cmath>\n",
     "#include <fstream>\n",
+    '#include <cstdlib>\n',
     "\n",
     "class Value;\n",
     "\n",
@@ -50,6 +51,20 @@ DEFAULT_HEADER = [
     "//#############################################User Programm#################################################\n"
 ]
 
+MAIN_WRAPPER = """int main(int __argc, char** __argv){
+    Value argc = Value(__argc);
+    Value argv = Value([__argc, __argv]() {
+        std::vector<Value> _argv;
+        for (int i = 0; i < __argc; ++i) {
+            _argv.emplace_back(Value(__argv[i]));
+        }
+        return _argv;
+    }());
+
+%
+    return 0;
+}"""
+
 HEADER_MODULES = [
     "compare_enum",
     "tostr",
@@ -77,9 +92,9 @@ HEADER_MODULES = [
     "vfloat",
 ]
 
-VALUE_INSERT_LINE = 36
+VALUE_INSERT_LINE = 37
 
-RUNTIME_INSERT_LINE = 46
+RUNTIME_INSERT_LINE = 47
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",
@@ -111,6 +126,26 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "freadlines": "freadlines",
     "fcreate": "fcreate",
     "fwrite": "fwrite",
-    "fwritelines": "fwritelines"
+    "fwritelines": "fwritelines",
+    "exit": "__exit",
+    "list": "vlist",
+    "os_run": "os_run"
 }
+
+INVALID_VAR_NAMES = [
+    "__argc",
+    "__argv",
+    "__restrict__",
+    "int",
+    "long",
+    "unsigned",
+    "signed",
+    "char",
+    "float",
+    "double"
+]
+
+INVALID_FUNC_NAMES = [
+    "main"
+]
 

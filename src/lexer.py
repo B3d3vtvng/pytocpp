@@ -87,6 +87,10 @@ class Lexer():
                     continue
 
                 token_idx = line.index(token_ident)
+
+                if self.is_floating_point(token_type, token_idx, line):
+                    continue
+
                 token = self.make_kw_token(i+1, token_idx, line, token_ident, token_name)
                 if not token:
                     continue
@@ -350,6 +354,9 @@ class Lexer():
             bool_value = True if non_token == "True" else False
             token = Token(ln_num, non_token_idx, "TT_bool", bool_value)
         else:
+            if '.' in non_token or non_token[0].isdigit():
+                self.error = SyntaxError(f"Invalid Identifier: '{non_token}'", ln_num, self.file_n)
+                return None
             token = Token(ln_num, non_token_idx, "TT_identifier", non_token)
 
         return token
@@ -390,7 +397,6 @@ class Lexer():
             return None
         float_val += int(float_val_right) / pow(10, len(float_val_right))
         return Token(ln_num, non_token_idx, "TT_float", float_val)
-
 
     def get_token_count(self, tokens: list[Token], token_t: str) -> int:
         return len([token for token in tokens if token.token_t == token_t])
@@ -436,6 +442,13 @@ class Lexer():
             return True
         
         return False
+
+    def is_floating_point(self, token_type: str, token_idx: int, line: str) -> bool:
+        if token_type != "DOT":
+            return False
+        if token_idx == 0 or token_idx == len(line)-1:
+            return False
+        return self.isfloat(line[token_idx-1:token_idx+1])
     
 def get_token_ident(token_name: str) -> str:
     """

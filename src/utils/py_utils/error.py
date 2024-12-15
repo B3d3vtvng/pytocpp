@@ -19,7 +19,11 @@ class Error():
 
     def __str__(self):
         return f"\n{self.file_n}:{self.error_ln}  {self.error_t}: {self.error_v}\n"
+    
 
+class Warning(Error):
+    def __init__(self, warning_v, warning_ln, file_n) -> None:
+        super().__init__("Warning", warning_v, warning_ln, file_n)
     
 class FileError(Error):
     """
