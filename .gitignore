@@ -9,5 +9,6 @@ pyclib.dSYM/
 
 #Ignore test files
 test.py
+test2.py
 test.cpp
 test.out

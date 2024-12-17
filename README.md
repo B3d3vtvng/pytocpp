@@ -22,9 +22,10 @@ Supported features include:
 - Basic logical operations (and, or, ==, <, ...)
 - Basic control flow structures (if, elif, else, while, for, ...)
 - Functions
-- Basic I/O operations (read, print)
+- Basic I/O operations (read, print, file IO)
 - Basic built-in functions (len(), type casting, ...)
 - 64-bit integers and 128-bit floats
+- Import statements
 
 Possible features in the future could be:
 
@@ -37,18 +38,11 @@ I am not planning on implementing OOP features.
 
 ## Limitations
 
-This project has a lot of limitations as I have been very strict about keeping everything as close to the original python as possible which leads to some problems. Limitations include:
-
-- No imports
-- No left side indexing (but I am planning to change that)
-- No double indexing
-- Custom Runtime errors in the compiled executable to enforce full type safety
-- No OOP features
-- Limited built-in function support
+The limitations of this projects are mostly set by the time in would require to implement them. Beforehand, I have decided not to implement OOP features as I think it would be a pain in the butt, and because I only have limited time, there can only be so many built-in functions. Another limitation would be custom runtime errors in the compiled executable which are neccessary to enforce full type safety.
 
 Please let me know if you notice any other limitations.
 
 
 ## Build process
 
-I am proud to say that the python part of this project has close to no dependencies. The only extern libraries used are itertools, sys and the c++ headers 'iostream', 'variant' and 'vector'. For the C++ part of the project, a basic C++ compiler should do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
+I am proud to say that the python part of this project has close to no dependencies. The very little dependencies are part of the standart librarie of their respective language. For the C++ part of the project, a basic C++ compiler should do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.

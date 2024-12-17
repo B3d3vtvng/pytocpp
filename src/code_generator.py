@@ -1,6 +1,6 @@
 from typing import TextIO
 from src.utils.py_utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
-from src.utils.py_utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER
+from src.utils.py_utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT
 from src.utils.py_utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
 
@@ -58,6 +58,7 @@ class CodeGenerator():
         Takes the target string to generate code for the current node and the current indentation\n
         Returns the given string with the generated code at the specified place
         """
+        if self.ast.cur_node.__class__.__name__ == "ImportNode": return ""
         generator_func = self.get_generator_func()
         res = generator_func(target_string, indentation, **kw_args)
         return res
@@ -301,11 +302,20 @@ class CodeGenerator():
         return None
     
     def resolve_header(self) -> None:
+        included_libs = []
+        include_insert_line = INCLUDE_INSERT_LINE
         value_insert_line = VALUE_INSERT_LINE
         runtime_insert_line = RUNTIME_INSERT_LINE
         included_modules = [module for module in self.module_dict.keys() if self.module_dict[module]]
         public_incl = False
         for included_module in included_modules:
+            if included_module in BUILT_IN_FUNC_TO_LIB_DICT.keys() and BUILT_IN_FUNC_TO_LIB_DICT[included_module] not in included_libs:
+                included_libs.append(BUILT_IN_FUNC_TO_LIB_DICT[included_module])
+                added_lines = len(BUILT_IN_FUNC_TO_LIB_DICT[included_module])
+                include_insert_line += added_lines
+                value_insert_line += added_lines
+                runtime_insert_line += added_lines
+                self.include_lib(include_insert_line, included_module)
             target = "value" if included_module[:2] == "v_" else "runtime"
             cur_insert_line = value_insert_line if target == "value" else runtime_insert_line
             if target == "runtime" and not public_incl:
@@ -325,5 +335,12 @@ class CodeGenerator():
                 value_insert_line += inserted_line_count+1
             runtime_insert_line += inserted_line_count+1
         self.header = ''.join(self.header)
+        return None
+    
+    def include_lib(self, insert_line: int, module: str) -> None:
+        target_libs = BUILT_IN_FUNC_TO_LIB_DICT[module]
+        for target_lib in target_libs:
+            self.header.insert(insert_line, f"#include <{target_lib}>\n")
+            insert_line += 1
         return None
             

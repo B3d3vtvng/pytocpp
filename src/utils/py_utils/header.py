@@ -5,10 +5,6 @@ DEFAULT_HEADER = [
     "#include <variant>\n",
     "#include <string>\n",
     "#include <vector>\n",
-    "#include <sstream>\n",
-    "#include <cmath>\n",
-    "#include <fstream>\n",
-    '#include <cstdlib>\n',
     "\n",
     "class Value;\n",
     "\n",
@@ -92,9 +88,11 @@ HEADER_MODULES = [
     "vfloat",
 ]
 
-VALUE_INSERT_LINE = 37
+INCLUDE_INSERT_LINE = 5
 
-RUNTIME_INSERT_LINE = 47
+VALUE_INSERT_LINE = 33
+
+RUNTIME_INSERT_LINE = 43
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",
@@ -129,7 +127,8 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "fwritelines": "fwritelines",
     "exit": "__exit",
     "list": "vlist",
-    "os_run": "os_run"
+    "os_run": "os_run",
+    "sleep": "sleep"
 }
 
 INVALID_VAR_NAMES = [
@@ -148,4 +147,17 @@ INVALID_VAR_NAMES = [
 INVALID_FUNC_NAMES = [
     "main"
 ]
+
+BUILT_IN_FUNC_TO_LIB_DICT = {
+    "v_tostr": ("sstream",),
+    "vprint": ("sstream",),
+    "vsqrt": ("cmath",),
+    "fread": ("fstream",),
+    "freadlines": ("fstream",),
+    "fcreate": ("fstream",),
+    "fwrite": ("fstream",),
+    "fwritelines": ("fstream",),
+    "os_run": ("cstdlib",),
+    "sleep": ("chrono", "thread")
+}
 

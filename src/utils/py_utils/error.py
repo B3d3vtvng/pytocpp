@@ -34,7 +34,10 @@ class FileError(Error):
 
     def __repr__(self):
         return f"\nFileError: {self.error_v}    File: {self.file_n}\n"
-
+    
+class ModuleNotFoundError(Error):
+    def __init__(self, file_n) -> None:
+        super().__init__("ModuleNotFoundError", "The given module could not be found", -1, file_n)
     
 class FlagError():
     """

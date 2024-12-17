@@ -2,6 +2,7 @@
 Class managing the core functionality of the pytoc Python Transpiler
 """
 
+from src.utils.py_utils.error import ModuleNotFoundError
 from src.lexer import Lexer
 from src.parser import Parser
 from src.ast_optimization_pass import ASTOptimizationPass
@@ -18,7 +19,15 @@ class Compiler():
         """
         self.flags = flags
         self.file_n = file_n
+        self.validate_file_n()
         self.new_file_n = self.get_new_file_n()
+
+    def validate_file_n(self) -> None:
+        try:
+            open(self.file_n, "r")
+        except Exception:
+            print(ModuleNotFoundError(self.file_n[:-3].replace("/", ".")))
+            exit(1)
 
     def get_new_file_n(self):
         """
@@ -68,8 +77,10 @@ class Compiler():
         tokens = self.run_component(lexer, lexer.make_tokens, 2)
         if "--show-tokens" in self.flags.keys():
             print(tokens)
-        parser = Parser(tokens, self.file_n)
-        ast, func_identifier_dict = self.run_component(parser, parser.make_ast, 3, haswarning=True)
+        parser = Parser(tokens, self.file_n, self.flags)
+        ast, func_identifier_dict, var_identifier_dict, invalid_func_identifier_dict, invalid_var_identifier_dict = self.run_component(parser, parser.make_ast, 3, haswarning=True)
+        if "--import" in self.flags:
+            return ast, func_identifier_dict, var_identifier_dict, invalid_func_identifier_dict, invalid_var_identifier_dict
         ast_optimizer = ASTOptimizationPass(ast, func_identifier_dict)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
         if "--show-ast" in self.flags.keys():

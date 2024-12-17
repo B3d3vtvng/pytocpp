@@ -18,7 +18,7 @@ from src.nodes import *
 from src.lexer import get_token_ident
 
 class Parser():
-    def __init__(self, tokens: list[Token], file_n: str) -> None:
+    def __init__(self, tokens: list[Token], file_n: str, flags: dict[str: str | None]) -> None:
         """
         Attributes:
 
@@ -47,6 +47,7 @@ class Parser():
         self.warning = None
         self.tokens = tokens
         self.file_n = file_n
+        self.flags = flags
         self.func_identifier_dict = BUILT_IN_FUNC_DICT.copy()
         self.var_identifier_dict = {}
         self.invalid_var_identifier_dict = {}
@@ -59,8 +60,11 @@ class Parser():
     def ast_init(self) -> None:
         self.ast.append_node(AssignNode("argc"))
         self.ast.base_node.children[0].type = ("int",)
+        self.ast.base_node.children[0].id = -1
         self.ast.append_node(AssignNode("argv"))
         self.ast.base_node.children[1].type = ("list",)
+        self.ast.base_node.children[1].id = -2
+        self.ast.next_free_id = 1
         self.var_identifier_dict["argc"] = self.ast.base_node.children[0]
         self.var_identifier_dict["argv"] = self.ast.base_node.children[1]
 
@@ -73,7 +77,7 @@ class Parser():
             return None
         self.ast.base_node.children = self.ast.base_node.children[2:]
         
-        return self.ast, self.func_identifier_dict
+        return self.ast, self.func_identifier_dict, self.var_identifier_dict, self.invalid_func_identifier_dict, self.invalid_var_identifier_dict
     
     #################################General Parsing######################################
     
@@ -117,6 +121,9 @@ class Parser():
         if self.is_assign(line):
             if self.parse_assign(line) == -1: return -1
             return i+1
+        elif line[0].token_t == "TT_import":
+            if self.parse_import_statement(line) == -1: return -1
+            return i+1
         elif line[0].token_t == "TT_identifier" and line[1].token_t == "TT_lparen" and line[len(line)-2].token_t == "TT_rparen":
             if self.parse_func_call(line) == -1: return -1
             return i+1
@@ -144,6 +151,66 @@ class Parser():
         return -1
     
     ###########################Control Flow and Statement Parsing################################
+    
+    def parse_import_statement(self, line: list[Token]) -> int:
+        cur_ln_num = line[0].ln
+        line = line[1:-1]
+        module_path = self.get_module_path(line, cur_ln_num)
+        if module_path == -1: return -1
+
+        self.ast.append_node(ImportNode(module_path))
+
+        from src.compiler import Compiler
+
+        flags = deepcopy(self.flags)
+        flags["--import"] = None
+
+        import_compiler = Compiler(module_path, flags)
+        import_ast, import_func_identifier_dict, import_var_identifier_dict, import_invalid_func_identifier_dict, import_invalid_var_identifier_dict = import_compiler.compile()
+
+        args = (self.ast.base_node.children.pop(0), self.ast.base_node.children.pop(0))
+        self.ast.base_node.children = import_ast.base_node.children + self.ast.base_node.children
+        for i in range(len(args)):
+            self.ast.base_node.children.insert(i, args[i])
+        self.ast.readjust_ids()
+
+        import_func_identifier_dict = import_func_identifier_dict | self.func_identifier_dict
+        self.func_identifier_dict = import_func_identifier_dict
+
+        import_var_identifier_dict = import_var_identifier_dict | self.var_identifier_dict
+        self.var_identifier_dict = import_var_identifier_dict
+
+        import_invalid_func_identifier_dict = import_invalid_func_identifier_dict | self.invalid_func_identifier_dict
+        self.invalid_func_identifier_dict = import_invalid_func_identifier_dict
+
+        import_invalid_var_identifier_dict = import_invalid_var_identifier_dict | self.invalid_var_identifier_dict
+        self.invalid_var_identifier_dict = import_invalid_var_identifier_dict
+
+        return 0
+
+    def get_module_path(self, line: list[Token], ln_num: int) -> str:
+        req_identifier = True
+        path_str = ""
+        for token in line:
+            if req_identifier:
+                if token.token_t != "TT_identifier":
+                    self.error = SyntaxError("Invalid Syntax", ln_num, self.file_n)
+                    return -1
+                path_str += token.token_v
+            else:
+                if token.token_t != "TT_dot":
+                    self.error = SyntaxError("Invalid Syntax", ln_num, self.file_n)
+                    return -1
+                path_str += "/"
+            req_identifier = not req_identifier
+        
+        if req_identifier:
+            self.error = SyntaxError("Invalid Syntax", ln_num, self.file_n)
+            return -1
+
+        return path_str + ".py"
+
+
     
     def parse_return_statement(self, line: list[Token]) -> int:
         """
@@ -214,10 +281,16 @@ class Parser():
         self.func_identifier_dict[func_identifier] = self.ast.cur_node
         self.ast.cur_node.arg_names = args
         self.ast.cur_node.indentation = cur_line_indentation
-        #children can not be parsed yet because argument types are still unknown
         children_count, self.ast.cur_node.unparsed_children = self.get_children(rem_line_tokens, cur_line_indentation)
+        if "--import" in self.flags.keys():
+            self.parse_no_discard_func_def()
         self.ast.detraverse_node()
         return children_count
+    
+    def parse_no_discard_func_def(self) -> None:
+        arg_types = [() for i in range(len(self.ast.cur_node.arg_names))]
+        self.parse_func_def_children(arg_types, self.ast.cur_node, self.ast.cur_node)
+        return None
     
     def parse_func_def_args(self, tokens: list[Token], cur_ln_num: int) -> list[str] | int:
         """
@@ -1185,6 +1258,8 @@ class Parser():
         if isinstance(self.ast.cur_node, AssignNode):
             if not self.ast.cur_node.value:
                 parent_func_def_node = self.ast.get_parent_node(FuncDefNode)
+                if not parent_func_def_node.func_call_nodes:
+                    return []
                 arg_index = parent_func_def_node.arg_names.index(self.ast.cur_node.name)
                 self.ast.cur_node = parent_func_def_node.func_call_nodes[0].args[arg_index]
                 return self.get_iter_nodes()

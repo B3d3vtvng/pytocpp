@@ -26,7 +26,6 @@ class ASTNode():
         repr_offset: The indentation for the __repr__ function
         """
         self.parent = None
-        self.id = None
         self.repr_offset = 0
 
 class ASTBaseNode(ASTNode):
@@ -73,6 +72,15 @@ class ExpressionNode(ASTNode):
         self.right.repr_offset = self.repr_offset + 2
         tab_offset = "    " * self.repr_offset
         return f"ExpressionNode[\n{tab_offset}    Left[ \n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: '{self.op}'  \n{tab_offset}    Right:[\n{tab_offset}        {self.right}\n{tab_offset}    ]    \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class ImportNode(ASTNode):
+    def __init__(self, path: str) -> None:
+        super().__init__()
+        self.path = path
+
+    def __repr__(self) -> str:
+        tab_offset = "    " * self.repr_offset
+        return f"ImportNode[\n{tab_offset}    Path: {self.path}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class NumberNode(ASTNode):
     def __init__(self, value: int | float) -> None:
@@ -620,6 +628,34 @@ class AST():
             self.detraverse_node()
         self.cur_node = old_cur_node
         return -1
+    
+    def readjust_ids(self) -> None:
+        self.next_free_id = 0
+        self.next_free_id = self.rec_readjust_ids(self.base_node)
+        return None
+
+    def rec_readjust_ids(self, node: ASTNode) -> None:
+        node.id = self.next_free_id
+        self.next_free_id += 1
+        highest_id = self.next_free_id
+        for child_node in self.get_children(node):
+            new_id = self.rec_readjust_ids(child_node)
+            if new_id > highest_id:
+                highest_id = new_id
+        return highest_id
+    
+    def get_children(self, node: ASTNode) -> list[ASTNode]:
+        children = []
+        for attr in node.__dir__():
+            if attr in ("parent", "prev_cond_nodes", "return_nodes", "func_call_nodes", "last_func_def_node"):
+                continue
+            if isinstance(node.__getattribute__(attr), ASTNode):
+                children.append(node.__getattribute__(attr))
+            if isinstance(node.__getattribute__(attr), list) and node.__getattribute__(attr) and isinstance(node.__getattribute__(attr)[0], ASTNode):
+                children += node.__getattribute__(attr)
+
+        return children
+
 
     def __repr__(self):
         """

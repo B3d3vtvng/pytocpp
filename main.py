@@ -17,6 +17,12 @@ def compile():
         compiler = Compiler(file_n, flags)
         compiler.compile()
         return 0
+    except RecursionError as e:
+        print("RecursionError: The given programm causes an infinite recusion loop, most likely due to circular imports")
+        if "-v" in flags.keys():
+            raise e
+        else:
+            exit(1)
     except Exception as e:
         if "-v" in flags.keys():
             raise e

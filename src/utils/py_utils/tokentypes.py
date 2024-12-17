@@ -42,7 +42,8 @@ TOKEN_TYPES = {
     "ELSE": ("TT_else", "else"),
     "WHILE": ("TT_while", "while"),
     "FOR": ("TT_for", "for"), 
-    "IN": ("TT_in", "in")
+    "IN": ("TT_in", "in"),
+    "IMPORT": ("TT_import", "import")
     }    
 
 KEYWORDS = [

@@ -58,8 +58,11 @@ temp_ast.append_node(FuncDefNode("list", ["str_input"]))
 temp_ast.cur_node.children[13].arg_types = [("str",)]
 temp_ast.cur_node.children[13].return_type = ("list",)
 temp_ast.append_node(FuncDefNode("os_run", ["command"]))
-temp_ast.cur_node.children[13].arg_types = [("str",)]
-temp_ast.cur_node.children[13].return_type = ("int",)
+temp_ast.cur_node.children[14].arg_types = [("str",)]
+temp_ast.cur_node.children[14].return_type = ("int",)
+temp_ast.append_node(FuncDefNode("sleep", ["duration"]))
+temp_ast.cur_node.children[15].arg_types = [("int", "float")]
+temp_ast.cur_node.children[15].return_type = ("none",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",
@@ -78,7 +81,8 @@ BUILT_IN_FUNC_NAMES = [
     "fwritelines",
     "exit",
     "list",
-    "os_run"
+    "os_run",
+    "sleep"
 ]
 
 BUILT_IN_FUNC_DICT = {}
@@ -110,6 +114,7 @@ PY_TO_CPP_BUILT_IN_FUNC_DICT = {
     "fwritelines": "RunTime::fwritelines",
     "exit": "RunTime::__exit",
     "list": "RunTime::vlist",
-    "os_run": "RunTime::os_run"
+    "os_run": "RunTime::os_run",
+    "sleep": "RunTime::sleep"
 }
     
