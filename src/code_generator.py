@@ -1,7 +1,7 @@
 from typing import TextIO
-from src.utils.py_utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
-from src.utils.py_utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT
-from src.utils.py_utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
+from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
+from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT
+from src.utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
 
 class CodeGenerator():
@@ -323,7 +323,7 @@ class CodeGenerator():
                 runtime_insert_line += 1
                 cur_insert_line += 1
                 public_incl = True
-            with open(f"src/utils/cpp_utils/rt_funcs/{included_module}.cpp", "r") as module:
+            with open(f"lib/cpplib/{included_module}.cpp", "r") as module:
                 content = module.readlines()
             inserted_line_count = 0
             for line in content:

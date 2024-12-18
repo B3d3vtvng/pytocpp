@@ -7,13 +7,13 @@ parsing, most of the error handling and returns an ast
 
 from copy import deepcopy
 
-from src.utils.py_utils.error import *
-from src.utils.py_utils.header import INVALID_VAR_NAMES, INVALID_FUNC_NAMES
-from src.utils.py_utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
-from src.utils.py_utils.tokens import Token
-from src.utils.py_utils.list_util_funcs import get_sublists, get_combinations
-from src.utils.py_utils.allowed_type_constants import *
-from src.utils.py_utils.built_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
+from src.utils.error import *
+from src.utils.header import INVALID_VAR_NAMES, INVALID_FUNC_NAMES, STDLIB_TO_MODULE_PATH_DICT
+from src.utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
+from src.utils.tokens import Token
+from src.utils.list_util_funcs import get_sublists, get_combinations
+from src.utils.allowed_type_constants import *
+from src.utils.built_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
 from src.nodes import *
 from src.lexer import get_token_ident
 
@@ -157,6 +157,9 @@ class Parser():
         line = line[1:-1]
         module_path = self.get_module_path(line, cur_ln_num)
         if module_path == -1: return -1
+
+        if module_path in STDLIB_TO_MODULE_PATH_DICT.keys():
+            module_path = STDLIB_TO_MODULE_PATH_DICT[module_path]
 
         self.ast.append_node(ImportNode(module_path))
 

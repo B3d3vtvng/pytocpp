@@ -2,7 +2,7 @@
 Class managing the core functionality of the pytoc Python Transpiler
 """
 
-from src.utils.py_utils.error import ModuleNotFoundError
+from src.utils.error import ModuleNotFoundError
 from src.lexer import Lexer
 from src.parser import Parser
 from src.ast_optimization_pass import ASTOptimizationPass

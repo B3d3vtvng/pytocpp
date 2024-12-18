@@ -1,5 +1,5 @@
 from src.nodes import *
-from src.utils.py_utils.built_in_funcs import BUILT_IN_FUNC_NAMES
+from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES
 
 class ASTOptimizationPass():
     def __init__(self, ast: AST, func_identifier_dict: dict[str: FuncDefNode]) -> None:

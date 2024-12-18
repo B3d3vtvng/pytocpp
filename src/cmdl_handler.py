@@ -1,4 +1,4 @@
-from src.utils.py_utils.error import FileError, FlagError
+from src.utils.error import FileError, FlagError
 import sys
 
 HELP_MSG = "Usage: python3 main.py [flags (flag args)] [target filename]"

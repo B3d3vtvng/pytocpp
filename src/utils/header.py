@@ -161,3 +161,7 @@ BUILT_IN_FUNC_TO_LIB_DICT = {
     "sleep": ("chrono", "thread")
 }
 
+STDLIB_TO_MODULE_PATH_DICT = {
+    "os.py": "lib/pylib/os.py"
+}
+

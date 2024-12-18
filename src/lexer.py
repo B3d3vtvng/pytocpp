@@ -4,10 +4,10 @@ Lexer for the pytoc Python Transpiler
 Tokenises the given input.
 """
 
-from src.utils.py_utils.tokentypes import TOKEN_TYPES, KEYWORDS 
-from src.utils.py_utils.error import SyntaxError, SizeError
-from src.utils.py_utils.tokens import Token
-from src.utils.py_utils.sort_tokens import sort_tokens
+from src.utils.tokentypes import TOKEN_TYPES, KEYWORDS 
+from src.utils.error import SyntaxError, SizeError
+from src.utils.tokens import Token
+from src.utils.sort_tokens import sort_tokens
 
 class Lexer():
     def __init__(self, file_n: str) -> None:
