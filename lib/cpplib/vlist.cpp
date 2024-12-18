@@ -1,4 +1,4 @@
-    static Value vlist(const Value str_input_v){
+    static Value vlist(const Value& str_input_v){
         value_t str_input = str_input_v.get_value();
         if (!std::holds_alternative<std::string>(str_input)){
             RunTime instance;

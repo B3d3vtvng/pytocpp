@@ -1,4 +1,4 @@
-    static Value freadlines(const Value fname_v){
+    static Value freadlines(const Value& fname_v){
         value_t fname = fname_v.get_value();
         if (!std::holds_alternative<std::string>(fname)){
             RunTime instance;

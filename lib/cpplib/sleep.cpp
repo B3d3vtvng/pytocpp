@@ -1,4 +1,4 @@
-    static Value sleep(const Value time_v){
+    static Value sleep(const Value& time_v){
         value_t time = time_v.get_value();
         if (std::holds_alternative<long long>(time)){
             std::chrono::seconds time_sec = std::chrono::seconds(std::get<long long>(time));

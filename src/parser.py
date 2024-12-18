@@ -812,8 +812,8 @@ class Parser():
         operator_str = get_token_ident(operator.token_t)
         left = tokens[:operator_idx]
         right = tokens[operator_idx+1:]
-        self.ast.append_node(ConditionExpressionNode(operator_str), traversal_type)
-        self.ast.traverse_node(traversal_type)
+        new_node_id = self.ast.append_node(ConditionExpressionNode(operator_str), traversal_type)
+        self.ast.traverse_node_by_id(new_node_id, traversal_type)
         if operator.token_t in ("TT_and", "TT_or"):
             allowed_types = CONDITIONAL_EXPRESSION_LOGICAL_OPERATOR_ALLOWED_TYPES
         else:
@@ -849,8 +849,8 @@ class Parser():
             allowed_types = BINOP_EXPRESSION_MOD_ALLOWED_TYPES
         left = tokens[:operator_index]
         right = tokens[operator_index+1:]
-        self.ast.append_node(BinOpNode(get_token_ident(operator.token_t)), traversal_type)
-        self.ast.traverse_node(traversal_type)
+        new_node_id = self.ast.append_node(BinOpNode(get_token_ident(operator.token_t)), traversal_type)
+        self.ast.traverse_node_by_id(new_node_id, traversal_type)
         expr_type = self.parse_sides(left, right, tokens[0].ln, allowed_types, get_token_ident(operator.token_t))
         if expr_type == -1: return -1    
         self.ast.cur_node.type = expr_type
@@ -976,8 +976,8 @@ class Parser():
         content_exprs = self.get_content_expressions(tokens[1:])
         if content_exprs == -1: return -1
         tokens = tokens[2:len(tokens)-1]
-        node_id = self.ast.append_node(ArrayVarNode(var_identifier), traversal_type)
-        self.ast.traverse_node_by_id(node_id, traversal_type)
+        new_node_id = self.ast.append_node(ArrayVarNode(var_identifier), traversal_type)
+        self.ast.traverse_node_by_id(new_node_id, traversal_type)
         for content_expr in content_exprs:
             expr_type = self.parse_expression(content_expr, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False)
             if expr_type == -1: return -1

@@ -63,6 +63,12 @@ temp_ast.cur_node.children[14].return_type = ("int",)
 temp_ast.append_node(FuncDefNode("sleep", ["duration"]))
 temp_ast.cur_node.children[15].arg_types = [("int", "float")]
 temp_ast.cur_node.children[15].return_type = ("none",)
+temp_ast.append_node(FuncDefNode("time", []))
+temp_ast.cur_node.children[16].arg_types = []
+temp_ast.cur_node.children[16].return_type = ("float",)
+temp_ast.append_node(FuncDefNode("time_str", []))
+temp_ast.cur_node.children[17].arg_types = []
+temp_ast.cur_node.children[17].return_type = ("str",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",
@@ -82,7 +88,9 @@ BUILT_IN_FUNC_NAMES = [
     "exit",
     "list",
     "os_run",
-    "sleep"
+    "sleep",
+    "time",
+    "time_str"
 ]
 
 BUILT_IN_FUNC_DICT = {}
@@ -115,6 +123,8 @@ PY_TO_CPP_BUILT_IN_FUNC_DICT = {
     "exit": "RunTime::__exit",
     "list": "RunTime::vlist",
     "os_run": "RunTime::os_run",
-    "sleep": "RunTime::sleep"
+    "sleep": "RunTime::sleep",
+    "time": "RunTime::time",
+    "time_str": "RunTime::time_str"
 }
     

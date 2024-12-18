@@ -1,4 +1,4 @@
-    static Value fwrite(const Value fname_v, const Value finput_v){
+    static Value fwrite(const Value& fname_v, const Value finput_v){
         value_t fname = fname_v.get_value();
         value_t finput = finput_v.get_value();
         if (!std::holds_alternative<std::string>(fname) or !std::holds_alternative<std::string>(finput)){

@@ -1,4 +1,4 @@
-    static std::vector<Value> validate_iter(const Value iter_v){
+    static std::vector<Value> validate_iter(const Value& iter_v){
         value_t iter = iter_v.get_value();
 
         if (std::holds_alternative<std::vector<Value> >(iter)){

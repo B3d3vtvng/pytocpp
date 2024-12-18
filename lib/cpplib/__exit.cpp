@@ -1,4 +1,4 @@
-    static void __exit(const Value exit_code_v){
+    static void __exit(const Value& exit_code_v){
         value_t exit_code = exit_code_v.get_value();
         if (!std::holds_alternative<long long>(exit_code)){
             RunTime instance;

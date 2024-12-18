@@ -128,7 +128,9 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "exit": "__exit",
     "list": "vlist",
     "os_run": "os_run",
-    "sleep": "sleep"
+    "sleep": "sleep",
+    "time": "time",
+    "time_str": "time_str"
 }
 
 INVALID_VAR_NAMES = [
@@ -158,10 +160,14 @@ BUILT_IN_FUNC_TO_LIB_DICT = {
     "fwrite": ("fstream",),
     "fwritelines": ("fstream",),
     "os_run": ("cstdlib",),
-    "sleep": ("chrono", "thread")
+    "sleep": ("chrono", "thread"),
+    "time": ("chrono",),
+    "time_str": ("chrono", "sstream", "iomanip")
 }
 
 STDLIB_TO_MODULE_PATH_DICT = {
-    "os.py": "lib/pylib/os.py"
+    "os.py": "lib/pylib/os.py",
+    "math.py": "lib/pylib/math.py",
+    "timedexec.py": "lib/pylib/timedexec.py"
 }
 

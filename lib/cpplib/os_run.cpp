@@ -1,4 +1,4 @@
-    static Value os_run(const Value command_v){
+    static Value os_run(const Value& command_v){
         value_t command = command_v.get_value();
         if (!std::holds_alternative<std::string>(command)){
             RunTime instance;
