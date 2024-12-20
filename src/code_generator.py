@@ -239,7 +239,7 @@ class CodeGenerator():
             output = f"else{{\n%}}"
         body = self.generate_body(indentation)
         output = indentation * " " + output.replace("%", body)
-        output = output[:len(output)-2] + "\n" + indentation * " " + "}"
+        output = output[:len(output)-1] + "\n" + indentation * " " + "}"
         return target_string.replace("%", output)
     
     def generate_while_loop(self, target_string: str, indentation: int, **kw_args) -> str:
@@ -290,6 +290,9 @@ class CodeGenerator():
         self.ast.detraverse_node()
         output = indentation * " " + f"return {return_value};"
         return target_string.replace("%", output)
+    
+    def generate_continue(self, target_string: str, indentation: int, **kw_args) -> str:
+        return indentation * " " + "continue;"
     
     def include(self, rt_func_name: str) -> None:
         if rt_func_name == "vnequ":

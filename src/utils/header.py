@@ -143,7 +143,10 @@ INVALID_VAR_NAMES = [
     "signed",
     "char",
     "float",
-    "double"
+    "double",
+    "constexpr", 
+    "const",
+    "auto"
 ]
 
 INVALID_FUNC_NAMES = [

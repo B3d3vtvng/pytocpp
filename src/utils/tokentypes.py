@@ -43,7 +43,8 @@ TOKEN_TYPES = {
     "WHILE": ("TT_while", "while"),
     "FOR": ("TT_for", "for"), 
     "IN": ("TT_in", "in"),
-    "IMPORT": ("TT_import", "import")
+    "IMPORT": ("TT_import", "import"),
+    "CONTINUE": ("TT_continue", "continue")
     }    
 
 KEYWORDS = [

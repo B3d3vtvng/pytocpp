@@ -26,6 +26,7 @@ Supported features include:
 - Basic built-in functions (len(), type casting, ...)
 - 64-bit integers and 128-bit floats
 - Import statements
+- Continue statements
 
 Possible features in the future could be:
 

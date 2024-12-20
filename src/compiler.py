@@ -87,6 +87,6 @@ class Compiler():
             print(ast)
         code_generator = CodeGenerator(ast, self.new_file_n)
         new_file_n = self.run_component(code_generator, code_generator.generate_code, 5)
-        print(f"Sucessfully compiled: {self.file_n} -> {new_file_n}")
+        print(f"Sucessfully transpiled: {self.file_n} -> {new_file_n}")
         return 0
 
