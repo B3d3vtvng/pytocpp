@@ -32,7 +32,6 @@ TOKEN_TYPES = {
     "DQUOTE": ("TT_dquote", '"'),
     "SQUOTE": ("TT_squote", "'"),
     "DEF": ("TT_def", "def"),
-    "EXTERN": ("TT_extern", "extern"),
     "RET": ("TT_ret", "return"),
     "IF": ("TT_if", "if"),
     "NOT": ("TT_not", "not"),
@@ -44,7 +43,9 @@ TOKEN_TYPES = {
     "FOR": ("TT_for", "for"), 
     "IN": ("TT_in", "in"),
     "IMPORT": ("TT_import", "import"),
-    "CONTINUE": ("TT_continue", "continue")
+    "CONTINUE": ("TT_continue", "continue"),
+    "PASS": ("TT_pass", "pass"),
+    "BREAK": ("TT_break", "break")
     }    
 
 KEYWORDS = [

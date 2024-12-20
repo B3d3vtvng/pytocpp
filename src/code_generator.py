@@ -294,6 +294,12 @@ class CodeGenerator():
     def generate_continue(self, target_string: str, indentation: int, **kw_args) -> str:
         return indentation * " " + "continue;"
     
+    def generate_pass(self, target_string: str, indentation: int, **kw_args) -> str:
+        return indentation * " " + "// pass"
+    
+    def generate_break(self, target_string: str, indentation: int, **kw_args) -> str:
+        return indentation * " " + "break;"
+    
     def include(self, rt_func_name: str) -> None:
         if rt_func_name == "vnequ":
             self.include("vequ")

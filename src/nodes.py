@@ -366,6 +366,22 @@ class ContinueNode(ASTNode):
     def __repr__(self) -> str:
         tab_offset = self.repr_offset * "    "
         return f"ContinueNode[\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class PassNode(ASTNode):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def __repr__(self) -> str:
+        tab_offset = self.repr_offset * "    "
+        return f"ContinueNode[\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class BreakNode(ASTNode):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def __repr__(self) -> str:
+        tab_offset = self.repr_offset * "    "
+        return f"BreakNode[\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ForLoopNode(ASTNode):
     def __init__(self, iter_var_name: str) -> None:

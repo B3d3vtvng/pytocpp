@@ -124,6 +124,12 @@ class Parser():
         elif line[0].token_t == "TT_continue":
             if self.parse_continue_statement(line) == -1: return -1
             return i+1
+        elif line[0].token_t == "TT_pass":
+            if self.parse_pass_statement(line) == -1: return -1
+            return i+1
+        elif line[0].token_t == "TT_break":
+            if self.parse_break_statement(line) == -1: return -1
+            return i+1
         elif line[0].token_t == "TT_import":
             if self.parse_import_statement(line) == -1: return -1
             return i+1
@@ -154,6 +160,36 @@ class Parser():
         return -1
     
     ###########################Control Flow and Statement Parsing################################
+    
+    def parse_break_statement(self, line: list[Token]) -> int:
+        cur_ln_num = line[0].ln
+        line = line[:-1]
+        if len(line) > 1:
+            self.error = SyntaxError("Invalid Syntax", cur_ln_num, self.file_n)
+            return -1
+        
+        new_node_id = self.ast.append_node(BreakNode())
+        self.ast.traverse_node_by_id(new_node_id)
+
+        parent_node = self.ast.get_parent_node((ForLoopNode, WhileLoopNode))
+        if not parent_node:
+            self.error = SyntaxError("Continue Statement not properly inside loop", cur_ln_num, self.file_n)
+            return -1
+
+        self.ast.detraverse_node()
+
+        return 0
+    
+    def parse_pass_statement(self, line: list[Token]) -> int:
+        cur_ln_num = line[0].ln
+        line = line[:-1]
+        if len(line) > 1:
+            self.error = SyntaxError("Invalid Syntax", cur_ln_num, self.file_n)
+            return -1
+        
+        new_node_id = self.ast.append_node(PassNode())
+
+        return 0
     
     def parse_continue_statement(self, line: list[Token]) -> int:
         cur_ln_num = line[0].ln
