@@ -30,8 +30,6 @@ Supported features include:
 
 Possible features in the future could be:
 
-- A Python-like pass keyword
-- A Python-like break keyword
 - More advanced data types (tuple, dict, ...)
 
 I am not planning on implementing OOP features.
