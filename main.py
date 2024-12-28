@@ -1,6 +1,8 @@
 from src.cmdl_handler import CommandlineHandler
 from src.compiler import Compiler
 
+import sys
+
 def compile():
     """
     First function to be called in the whole program, 
@@ -11,7 +13,7 @@ def compile():
     cmdl_handler = CommandlineHandler()
     file_n, flags = cmdl_handler.handle_args()
     if cmdl_handler.error:
-        print(cmdl_handler.error)
+        print(cmdl_handler.error, file=sys.stderr)
         return 1
     try:
         compiler = Compiler(file_n, flags)

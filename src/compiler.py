@@ -8,6 +8,8 @@ from src.parser import Parser
 from src.ast_optimization_pass import ASTOptimizationPass
 from src.code_generator import CodeGenerator
 
+import sys
+
 class Compiler():
     def __init__(self, file_n, flags):
         """
@@ -57,13 +59,13 @@ class Compiler():
         """
         output = function()
         if component.error:
-            print(component.error)
-            print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n")
+            print(component.error, file=sys.stderr)
+            print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n", file=sys.stderr)
             exit(error_code)
         
         if haswarning and component.warning and "--disable-w" not in self.flags.keys():
-            print(component.warning)
-            print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n")
+            print(component.warning, file=sys.stderr)
+            print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n", file=sys.stderr)
         
         return output
         
