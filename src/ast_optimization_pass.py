@@ -30,7 +30,7 @@ class ASTOptimizationPass():
         if "children" not in node.__dict__.keys():
             return
         
-        children_nodes = [child_node.__class__.__name__ for child_node in node.children if child_node.__class__.__name__ in ("ReturnNode", "ForLoopNode", "WhileLoopNode")]
+        children_nodes = [child_node.__class__.__name__ for child_node in node.children if child_node.__class__.__name__]
 
         if "BreakNode" in children_nodes:
             node.children = node.children[:children_nodes.index("BreakNode")+1]

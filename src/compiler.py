@@ -78,7 +78,7 @@ class Compiler():
         lexer = Lexer(self.file_n)
         tokens = self.run_component(lexer, lexer.make_tokens, 2)
         if "--show-tokens" in self.flags.keys():
-            print(tokens)
+            print(tokens, end="\n\n")
         parser = Parser(tokens, self.file_n, self.flags)
         ast, func_identifier_dict, var_identifier_dict, invalid_func_identifier_dict, invalid_var_identifier_dict = self.run_component(parser, parser.make_ast, 3, haswarning=True)
         if "--import" in self.flags:
@@ -89,6 +89,7 @@ class Compiler():
             print(ast)
         code_generator = CodeGenerator(ast, self.new_file_n)
         new_file_n = self.run_component(code_generator, code_generator.generate_code, 5)
-        print(f"Sucessfully transpiled: {self.file_n} -> {new_file_n}")
+        if "--no-out" not in self.flags.keys():
+            print(f"Sucessfully transpiled: {self.file_n} -> {new_file_n}")
         return 0
 

@@ -1,8 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 # only supported on UNIX systems
 
-python3 ~/desktop/coding/python/pytocpp/main.py -o /tmp/pytocpp_temp.cpp $1 1>/dev/null|| exit 1
+filename="${!#}"
+args="${@:1:$(($# - 1 ))}"
+
+python3 ~/desktop/coding/python/pytocpp/main.py --no-out "$args" -o /tmp/pytocpp_temp.cpp "$filename" || exit 1
 g++ -std=c++23 -o /tmp/temp_exec.out /tmp/pytocpp_temp.cpp || exit 1
 chmod +x /tmp/temp_exec.out || exit 1
 /tmp/temp_exec.out || exit 1

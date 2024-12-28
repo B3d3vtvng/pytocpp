@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # only supported on unix systems
 

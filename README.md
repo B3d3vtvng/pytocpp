@@ -27,6 +27,7 @@ Supported features include:
 - 64-bit integers and 128-bit floats
 - Import statements
 - Continue statements
+- Shell support on UNIX systems
 
 Possible features in the future could be:
 
@@ -45,3 +46,19 @@ Please let me know if you notice any other limitations.
 ## Build process
 
 I am proud to say that the python part of this project has close to no dependencies. The very little dependencies are part of the standart librarie of their respective language. For the C++ part of the project, a basic C++ compiler should do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
+
+## Shell interface
+
+There are multiple ways of running a script with pytocpp:
+
+- Manually compiling the script:
+    - Running "python3 main.py [-args] filename" in the shell to invoke the compiler, producing a .cpp file
+    - Compiling the produced executable using a c++ compiler supporting c++ standart 17+
+    - Running the produced executable
+
+- Invoking the script using the pytocpp command (after running install.sh):
+    - Using the shell command "pytocpp [-args] filename" to automatically compile and run the script in the tmp folder
+
+- Invoking the script using a shebang:
+    - Putting "#!/usr/local/bin/pytocpp" at the top of your script
+    - Running the script through the terminal with ./filename

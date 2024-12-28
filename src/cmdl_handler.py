@@ -2,7 +2,7 @@ from src.utils.error import FileError, FlagError
 import sys
 
 HELP_MSG = "Usage: python3 main.py [flags (flag args)] [target filename]"
-FLAGS = ["--show-ast", "--show-tokens", "-o", "-v", "--disable-w", "--import"]
+FLAGS = ["--show-ast", "--show-tokens", "-o", "-v", "--disable-w", "--import", "--no-out"]
 
 
 class CommandlineHandler():
