@@ -1,51 +1,5 @@
-DEFAULT_HEADER = [
-    "//##########################################Header########################################################\n",
-    "\n",
-    "#include <iostream>\n",
-    "#include <variant>\n",
-    "#include <string>\n",
-    "#include <vector>\n",
-    "\n",
-    "class Value;\n",
-    "\n",
-    "using none = std::monostate;\n",
-    "using value_t = std::variant<long long, long double, bool, std::string, std::vector<Value>, none>;\n",
-    "\n",
-    "enum Compare{\n",
-    "    GREATER,\n",
-    "    LESS,\n",
-    "    GEQU,\n",
-    "    LEQU\n",
-    "};\n",
-    "\n",
-    "using cmp_t  = Compare;\n",
-    "\n",
-    "class Value {\n",
-    "private:\n",
-    "    value_t value;\n",
-    "\n",
-    "public:\n",
-    "    Value(value_t new_value){\n",
-    "        value = new_value;\n",
-    "    }\n",
-    "\n",
-    "    value_t get_value() const {\n",
-    "        return value;\n",
-    "    }\n",
-    "\n",
-    "};\n",
-    "\n",
-    "\n",
-    "class RunTime {\n",
-    "private:\n",
-    "    void throw_rt_error(const std::string& error_msg) const{\n",
-    "        std::cout << \"\\n\" << __FILE__ << \": RuntimeError: \" << error_msg << \"\\n\\n\" << \"NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\\n\\n\";\n",
-    "        exit(1);\n",
-    "    }\n",
-    "};\n",
-    "\n",
-    "//#############################################User Programm#################################################\n"
-]
+with open("src/utils/default_header.txt") as file:
+    DEFAULT_HEADER = file.readlines()
 
 MAIN_WRAPPER = """int main(int __argc, char** __argv){
     Value argc = Value(__argc);
@@ -92,7 +46,7 @@ INCLUDE_INSERT_LINE = 5
 
 VALUE_INSERT_LINE = 33
 
-RUNTIME_INSERT_LINE = 43
+RUNTIME_INSERT_LINE = 44
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",

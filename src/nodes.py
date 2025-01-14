@@ -4,7 +4,6 @@ AST Implementation for the Parser of the pytoc Python Transpiler
 Implements all necessary nodes and the AST class itself
 """
 
-
 from __future__ import annotations
 
 def format_type(tup: tuple) -> str:
@@ -303,9 +302,10 @@ class FuncDefNode(ASTNode):
         self.unparsed_children = None
         self.children = []
         self.func_call_nodes = None
-        self.var_identifier_dict = {}
+        self.identifier_container = None
         self.return_type = None
         self.return_nodes = []
+        self.type = ('func',)
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset

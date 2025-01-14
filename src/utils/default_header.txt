@@ -1,0 +1,47 @@
+//########################################## Header ########################################################
+
+#include <iostream>
+#include <variant>
+#include <string>
+#include <vector>
+
+class Value;
+
+using none = std::monostate;
+using value_t = std::variant<long long, long double, bool, std::string, std::vector<Value>, none>;
+
+enum Compare {
+    GREATER,
+    LESS,
+    GEQU,
+    LEQU
+};
+
+using cmp_t = Compare;
+
+class Value {
+private:
+    value_t value;
+
+public:
+    Value(value_t new_value) {
+        value = new_value;
+    }
+
+    value_t get_value() const {
+        return value;
+    }
+};
+
+class RunTime {
+private:
+    void throw_rt_error(const std::string& error_msg) const {
+        std::cout << "\n"
+                  << __FILE__ << ": RuntimeError: " << error_msg
+                  << "\n\nNOTE: Please note that this tool only supports a subset of the Python language."
+                  << " - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n\n";
+        exit(1);
+    }
+};
+
+//############################################# User Program #################################################

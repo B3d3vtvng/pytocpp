@@ -295,7 +295,7 @@ class CodeGenerator():
         return indentation * " " + "continue;"
     
     def generate_pass(self, target_string: str, indentation: int, **kw_args) -> str:
-        return indentation * " " + "// pass"
+        return indentation * " " + "// pass\n"
     
     def generate_break(self, target_string: str, indentation: int, **kw_args) -> str:
         return indentation * " " + "break;"

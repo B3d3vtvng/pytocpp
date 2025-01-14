@@ -80,10 +80,10 @@ class Compiler():
         if "--show-tokens" in self.flags.keys():
             print(tokens, end="\n\n")
         parser = Parser(tokens, self.file_n, self.flags)
-        ast, func_identifier_dict, var_identifier_dict, invalid_func_identifier_dict, invalid_var_identifier_dict = self.run_component(parser, parser.make_ast, 3, haswarning=True)
+        ast, identifier_manager = self.run_component(parser, parser.make_ast, 3, haswarning=True)
         if "--import" in self.flags:
-            return ast, func_identifier_dict, var_identifier_dict, invalid_func_identifier_dict, invalid_var_identifier_dict
-        ast_optimizer = ASTOptimizationPass(ast, func_identifier_dict)
+            return ast, 
+        ast_optimizer = ASTOptimizationPass(ast, identifier_manager)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
         if "--show-ast" in self.flags.keys():
             print(ast)
