@@ -12,3 +12,6 @@ test.py
 test2.py
 test.cpp
 test.out
+
+#Ignore .DS_Store
+.DS_Store
