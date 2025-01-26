@@ -709,8 +709,7 @@ class Parser():
         expr_type = self.parse_expression(right, "value", ln_num, expr_4=False)
         self.ast.cur_node.type = expr_type
         if expr_type == -1: return -1
-        if self.parse_expression(left, "left_expr", ln_num, expr_1=False, expr_2=False, expr_4=False, expr_5=False, expr_6=False, expr_7=False, expr_8=False) == -1:
-            self.error = SyntaxError("Invalid left-side indexing expression", ln_num, self.file_n)
+        if self.parse_expression(left, "left_expr", ln_num, expr_1=False, expr_2=False, expr_4=False, expr_5=False, expr_6=False, expr_7=False, expr_8=False) == -1: 
             return -1
         if self.ast.cur_node.left_expr.__class__.__name__ == "ArrayVarNode":
             if self.ast.cur_node.first_define:
@@ -719,7 +718,7 @@ class Parser():
             if not self.is_valid_type(old_def.type, ("list", "str")):
                 self.error = TypeError("Cannot index non-container type", ln_num, self.file_n)
                 return -1
-        self.identifier_manager.set_identifier(left[0].token_v, self.ast.cur_node)
+        self.identifier_manager.set_identifier(self.identifier_manager.get_relative_identifier(left[0].token_v), self.ast.cur_node)
 
         return expr_type
 
@@ -1008,12 +1007,12 @@ class Parser():
             self.ast.append_node(NoneNode(), traversal_type)
             return ("none",)
         if token.token_t == "TT_identifier":
-            name = token.token_v
+            name = self.identifier_manager.get_relative_identifier(token.token_v)
             if not self.identifier_manager.identifier_exists(name):
                 self.error = NameError(f"Unknown Identifier: '{name}'", token.ln, self.file_n)
                 return -1
             if name in self.identifier_manager.get_func_identifier_dict():
-                self.error = TypeError("Higher Order functions are not supported", token.ln, self.file_n)
+                self.error = TypeError("Higher Order functions are not supported. You might be overwriting a built-in function name.", token.ln, self.file_n)
                 return -1
             new_node_id = self.ast.append_node(VarNode(name), traversal_type)
             self.ast.traverse_node_by_id(new_node_id, traversal_type)

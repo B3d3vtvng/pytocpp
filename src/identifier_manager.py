@@ -8,6 +8,9 @@ class IdentifierManager():
         self.global_identifier_container = IdentifierContainer()
         self.ast = ast
 
+    def get_relative_identifier(self, name: str) -> str:
+        return self.get_cur_scope_identifier_container().get_relative_identifier(name)
+
     def identifier_exists(self, identifier: str) -> bool:
         return self.get_cur_scope_identifier_container().identifier_exists(identifier)
     
@@ -41,6 +44,12 @@ class IdentifierContainer():
         self.invalid_identifier_dict = {}
         self.func_identifiers = list(BUILT_IN_FUNC_DICT.keys())
 
+    def get_relative_identifier(self, name: str) -> str:
+        if name not in self.invalid_identifier_dict.keys():
+            return name
+        
+        return self.invalid_identifier_dict[name]
+
     def identifier_exists(self, identifier: str) -> bool:
         identifier = self.check_invalid_identifier(identifier)
         return identifier in self.identifier_dict.keys()
@@ -58,6 +67,7 @@ class IdentifierContainer():
             while identifier in self.identifier_dict:
                 identifier = "_" + identifier
             self.invalid_identifier_dict[original_identifier] = identifier
+            value.name = identifier
         self.identifier_dict[identifier] = value
         if isinstance(value, FuncDefNode):
             self.func_identifiers.append(identifier)
