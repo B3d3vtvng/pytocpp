@@ -287,12 +287,16 @@ class FuncDefNode(ASTNode):
         Attributes:
 
         indentation: The indentation level of the block representing the body of the function definition
+        name: The name of the function defined in the function definition
         arg_names: The identifiers for the arguments taken by the function
         arg_types: The expected types of the arguments taken by the function
         unparsed_children: Contains the unparsed block of tokens representing the body of the function definition until the function is called, specifying the types of the function arguments
+        children: A list of nodes representing the function body
         func_call_nodes: Contains the FuncCallNodes representing a call to the function
-        var_identifier_dict: Dictionary containing all variable identifiers and their respective AssignNode in the scope of the function body
+        identifier_container: Contains the identifiers of the local function scope
+        return type: The return type of the function
         return_node: Contains the ReturnNodes found in the function body
+        type: The type of the function, hardcoded to 'func'
         """
         super().__init__()
         self.indentation = None
@@ -305,7 +309,6 @@ class FuncDefNode(ASTNode):
         self.identifier_container = None
         self.return_type = None
         self.return_nodes = []
-        self.type = ('func',)
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -361,6 +364,9 @@ class FuncCallNode(ASTNode):
     
 class ContinueNode(ASTNode):
     def __init__(self) -> None:
+        """
+        Node representing a continue statement
+        """
         super().__init__()
 
     def __repr__(self) -> str:
@@ -369,6 +375,9 @@ class ContinueNode(ASTNode):
     
 class PassNode(ASTNode):
     def __init__(self) -> None:
+        """
+        Node representing a pass statement
+        """
         super().__init__()
 
     def __repr__(self) -> str:
@@ -377,6 +386,9 @@ class PassNode(ASTNode):
     
 class BreakNode(ASTNode):
     def __init__(self) -> None:
+        """
+        Node representing a break statement
+        """
         super().__init__()
 
     def __repr__(self) -> str:
@@ -391,8 +403,8 @@ class ForLoopNode(ASTNode):
         Attributes:
         
         iter_var_name: Contains the name of the variable representing the current element of the iteration
-        iter_var_type: Contains the type of the variable representing the current element of the iteration
         iter: Contains the Node representing the iterable that the loop iterates over
+        children: Contains the nodes representing the body of the loop
         """
         super().__init__()
         self.iter_var_name = iter_var_name
@@ -525,13 +537,8 @@ class AST():
 
     def traverse_node(self, trvs_type: str = "children") -> int:
         """
-        Purpose: Changes the current node to a node contained in an attribute of the current node
-
-        Takes the name of the attribute of the current node containing the node to which we want to traverse
-
-        Checks that the current node has the specified attribute
-        Handles both the case of the attribute to traverse to being a list or just intended for one node
-        Sets the current node equal to the node contained in the attribute
+        Changes the current node to the node contained in the attribute of the current node with the name specified in trvs_type, 
+        if the attribute is a list of nodes, it assignes the first node contained in that list
 
         Returns -1 on error, otherwise None
         """
@@ -547,12 +554,7 @@ class AST():
 
     def prev_child_node(self) -> int:
         """
-        Purpose: Changes the current node that must be contained in a list to the node with a list index of the index of the current node minus one
-
-        Obtains the parent node of the current node
-        Obtains the index of the current node inside the list attribute of the parent node
-        Verifies that the current node is not at the start of the list
-        Sets the current node to the previous node in the list
+        Changes the current node to 
 
         Returns -1 on error, otherwise 0
         """

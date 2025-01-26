@@ -53,6 +53,9 @@ class Parser():
         self.ast_init()
 
     def ast_init(self) -> None:
+        """
+        Initializes the argc and argv commandline arguments
+        """
         self.ast.append_node(AssignNode("argc"))
         self.ast.base_node.children[0].type = ("int",)
         self.ast.base_node.children[0].id = -1
@@ -65,12 +68,13 @@ class Parser():
 
     def make_ast(self) -> AST:
         """
-        Calls parse_block() with tokens, returns -1 on error, 
-        otherwise the ast
+        Generates an AST from tokens provided by the Lexer Class
+
+        Returns -1 on error, otherwise the generated ast and the identifiers of the global module scope 
         """
         if self.parse_block(self.tokens) == -1:
             return None
-        self.ast.base_node.children = self.ast.base_node.children[2:]
+        self.ast.base_node.children = self.ast.base_node.children[2:] # Removes temporary nodes for argc and argv from the ast
         
         return self.ast, self.identifier_manager
     
@@ -78,10 +82,7 @@ class Parser():
     
     def parse_block(self, tokens: list[Token]) -> None:
         """
-        Takes a list of tokens, splits it into their respective lines
-        and calls parse_line() on each line, taking indented blocks
-        and function definitions into consideration by i being adjusted
-        after every call to parse_line(), skipping indented blocks
+        Parses a block of tokens, a block being lines on the same or a higher indentation level than the first token passed
 
         Returns -1 on error, otherwise 0
         """
@@ -97,12 +98,7 @@ class Parser():
     
     def parse_line(self, i: int, line: list[Token], rem_line_tokens: list[list[Token]]) -> int:
         """
-        Takes the current index of the current line in the array of all lines
-        in parse_block(), the line to be parsed and the remaining lines
-        to take care of indented blocks following the current line
-
-        Returns i+1 on EOF, detects and validates the current indentation and
-        calls different parsing functions depending on the tokens found in line
+        Takes a line represented by tokens, the line number of the line and the remaining tokens of the current block and tries to match it to the syntax of the different statements.
 
         Throws an error and returns -1 when given line doesnt match any statement
         """
@@ -157,6 +153,11 @@ class Parser():
     ###########################Control Flow and Statement Parsing################################
     
     def parse_break_statement(self, line: list[Token]) -> int:
+        """
+        Parses a break statement represented in tokens to its corresponding AST Node while making sure that the statement is located in a loop
+
+        Returns -1 on error, otherwise 0
+        """
         cur_ln_num = line[0].ln
         line = line[:-1]
         if len(line) > 1:
@@ -176,6 +177,11 @@ class Parser():
         return 0
     
     def parse_pass_statement(self, line: list[Token]) -> int:
+        """
+        Parses a pass statement into its corresponding AST Node
+
+        Returns -1 on error, otherwise 0
+        """
         cur_ln_num = line[0].ln
         line = line[:-1]
         if len(line) > 1:
@@ -187,6 +193,11 @@ class Parser():
         return 0
     
     def parse_continue_statement(self, line: list[Token]) -> int:
+        """
+        Parses a continue statement into its corresponding AST Node while making sure that is is located inside a loop
+
+        Returns -1 on error, otherwise 0
+        """
         cur_ln_num = line[0].ln
         line = line[:-1]
         if len(line) > 1:
@@ -206,35 +217,43 @@ class Parser():
         return 0
     
     def parse_import_statement(self, line: list[Token]) -> int:
+        """
+        Parses an import statement. Import statements are not realized through modules but through c-like includes.
+
+        Returns -1 on error, otherwise 0
+        """
         cur_ln_num = line[0].ln
         line = line[1:-1]
-        module_path = self.get_module_path(line, cur_ln_num)
+        module_path = self.get_module_path(line, cur_ln_num) #Obtains the real path to the included module from the source directory
         if module_path == -1: return -1
 
         if module_path in STDLIB_TO_MODULE_PATH_DICT.keys():
-            module_path = STDLIB_TO_MODULE_PATH_DICT[module_path]
+            module_path = STDLIB_TO_MODULE_PATH_DICT[module_path] #Adjusts stdlib modules like "os" to their real path from the source
 
         self.ast.append_node(ImportNode(module_path))
 
         from src.compiler import Compiler
 
-        flags = deepcopy(self.flags)
-        flags["--import"] = None
+        flags = deepcopy(self.flags) # Copies the flags given
+        flags["--import"] = None # Adds the "--import" flag, prompting the compiler to return the ast and identifiers after the parsing stage without generating code
 
         import_compiler = Compiler(module_path, flags)
         import_ast, import_ident_man = import_compiler.compile()
 
-        args = (self.ast.base_node.children.pop(0), self.ast.base_node.children.pop(0))
-        self.ast.base_node.children = import_ast.base_node.children + self.ast.base_node.children
+        args = (self.ast.base_node.children.pop(0), self.ast.base_node.children.pop(0)) #Saves the commandline arguments of the current module
+        self.ast.base_node.children = import_ast.base_node.children + self.ast.base_node.children #Merges the ASTs of the current and the imported module
         for i in range(len(args)):
-            self.ast.base_node.children.insert(i, args[i])
+            self.ast.base_node.children.insert(i, args[i]) #Inserts the commandline arguments at the start again
         self.ast.readjust_ids()
 
-        self.identifier_manager.merge_identifiers(import_ident_man)
+        self.identifier_manager.merge_identifiers(import_ident_man) #Merges the global scope identifiers from the current and the imported module
 
         return 0
 
     def get_module_path(self, line: list[Token], ln_num: int) -> str:
+        """
+        Extracts the path to the module imported in an import statement
+        """
         req_identifier = True
         path_str = ""
         for token in line:
@@ -259,11 +278,7 @@ class Parser():
 
     def parse_return_statement(self, line: list[Token]) -> int:
         """
-        Takes the line containing the return statement, 
-        Verifies that the return statement is inside a function,
-        Creates ReturnNode object inside the ast,
-        Parses the expression representing its value,
-        Adds information concerning its type into the ast
+        Parses a return statement to its corresponding AST Node
 
         Returns -1 on error, otherwise 0
         """
@@ -286,15 +301,8 @@ class Parser():
     
     def parse_func_def(self, line: list[Token], rem_line_tokens: list[list[Token]], cur_line_indentation: int) -> int:
         """
-        Takes the line to be parsed, the remaining lines of tokens and the current indentation
-
-        Verifies that the last token in the line is a colon, 
-        Verifies that the def keyword is followed by an identifier being the function name,
-        Verifies that the function name is followed by '(' and the second last token is a ')',
-        Parses the argument names,
-        Creates new FuncDefNode in the ast,
-        Adds the new function to the func_identifier_dict
-        Calls get_children() to obtain function body, saves unparsed body in node attribute 'unparsed_children'
+        Takes a list of tokens, the remaining tokens in the current block and the indentation of the current line and parses them to their AST Node
+        It does not parse the function body except for when the --import flag is given, as that is parsed only after the first function call is parsed
 
         Returns -1 on error, otherwise the amount of lines in the function body
         """
@@ -327,17 +335,16 @@ class Parser():
         return children_count
     
     def parse_no_discard_func_def(self) -> None:
+        """
+        Parses the body of the function definition in case the --import flag is given without infering types as the argument types are not known
+        """
         arg_types = [() for i in range(len(self.ast.cur_node.arg_names))]
         self.parse_func_def_children(arg_types, self.ast.cur_node, self.ast.cur_node)
         return None
     
     def parse_func_def_args(self, tokens: list[Token], cur_ln_num: int) -> list[str] | int:
         """
-        Takes the tokens representing the names of the function arguments and the current line number
-
-        Iterates over each token, verifing that only valid tokens are used,
-        Throws a SyntaxError if unexpected token is found or if expression ends in a comma
-
+        Takes the tokens representing the function arguments and parses them into a list of expressions represented by their tokens
         Returns -1 on error, otherwise a list of the argument names
         """
         if not tokens: return []
@@ -359,13 +366,7 @@ class Parser():
 
     def parse_for_loop(self, line: list[Token], rem_line_tokens: list[list[Token]], cur_line_indentation: int) -> int:
         """
-        Takes the line to be parsed, the remaining lines and the current indentation
-
-        Verifies valid syntax,
-        Creates new node inside of ast,
-        Parses expression to be iterated over and validates that it is iterable,
-        Creates iter variable inside of ast and gets its type using get_array_types()
-        Parses the for-loop body
+        Parses a for loop and its body represented by a list of tokens into its AST Node
 
         Returns -1 on error, otherwise the amount of lines in the body
         """
@@ -402,12 +403,7 @@ class Parser():
 
     def parse_while_loop(self, line: list[Token], rem_line_tokens: list[list[Token]], cur_line_indentation: int) -> int:
         """
-        Takes the line to be parsed, the remaining lines and the current indentation
-
-        Verifies valid syntax,
-        Creates new node inside the ast,
-        Parses the expression representing the loop condition
-        Calls parse_children() on the loop body
+        Takes the token representation of a while loop and parses it and its body into their AST Nodes
 
         Returns -1 on error, otherwise the amount of lines inside the body
         """
@@ -429,13 +425,7 @@ class Parser():
         
     def parse_conditional_statement(self, line: list[Token], rem_line_tokens: list[list[Token]], cur_line_indentation: int) -> int:
         """
-        Takes the line to be parsed, the remaining lines and the current indentation
-
-        Verifies valid syntax,
-        Creates a new node inside the ast,
-        Verifies that else- and elif statements are preceded by an if- or elif statement,
-        Parses the conditional expression,
-        Parses the body
+        Takes the token representation of a conditional statement and parses it and its body into their corresponding AST Nodes
 
         Returns -1 on error, otherwise the amount of lines in the body
         """
@@ -462,11 +452,7 @@ class Parser():
 
     def parse_children(self, parent_line_indentation: int, child_line_tokens: list[list[Token]] = None, block_to_parse: list[list[Token]] = None) -> int:
         """
-        Takes the indentation of the parent line and the remaining lines or a preprocessed block of tokens to parse
-
-        If all the remaining lines have been passed, the block to parse has to be obtained by calling get_children(),
-        The block of lines is split back into tokens,
-        The current indentation is kept track off and parse_block is called
+        Parses the body of a statement containing an indented block into their respective AST Nodes
 
         Returns -1 on error, otherwise the amount of lines in the block
         """
@@ -485,10 +471,7 @@ class Parser():
 
     def get_prev_conditional_nodes(self) -> None:
         """
-        Traverses through the previously parsed nodes in the current block
-        When prev_child_node() returns -1, it has reached the first line in the block, so we end the loop
-        Exit loop if the current node is not a conditional statement
-        Store nodes in list, return -1 if list is empty and append nodes into ast
+        Lists all conditional statement Nodes located directly before the current node in the current block and adds them to the current node
 
         Returns -1 on error, otherwise 0
         """
@@ -508,19 +491,8 @@ class Parser():
 
     def parse_func_call(self, line: list[Token], traversal_type: str="children", from_expr: bool = False) -> int:
         """
-        Takes the current line, the name of the branch of the current node, the function call is situated at
-        and the fact if the function is called from parse_expression() of from parse_line()
-
-        Verifies that the function called exists,
-        Verifies valid syntax, taking the EOL token into consideration if the function is called from parse_line(),
-        Parses the arguments passed to the function by calling parse_func_call_args(),
-        Ensures valid syntax for arguments passed to the function,
-        Creates a new node inside the ast,
-        Calls parse_expression on each argument and stores its type,
-        Ensures that the amount of arguments given corresponds to the expected amount,
-        Stores the new node inside the corresponding FuncDefNode,
-        Parses the children of the FuncDefNode if they are still unparsed
-        Verifies that the function arguments have the expected type
+        Takes the token representation of a function call expression and parses it into an AST Node.
+        Also parses the body of the function definition of the called function if it is the first call to that function and the --import flag has not been given
 
         Returns -1 on error, otherwise 0
         """
@@ -543,9 +515,6 @@ class Parser():
         for arg_expr in arg_exprs:
             arg_type = self.parse_expression(arg_expr, "args", cur_ln_num, expr_4=False)
             if arg_type == -1: return -1
-            if self.is_valid_type(arg_type, ("func",)):
-                self.error = TypeError("Higher Order functions are not yet supported.", cur_ln_num, self.file_n)
-                return -1
             arg_types.append(arg_type)
         if not arg_exprs and name == "input":
             self.ast.append_node(StringNode(""), "args")
@@ -572,9 +541,7 @@ class Parser():
     
     def handle_arg_parsing_error(self, error_code: int, cur_ln_num: int) -> int:
         """
-        Takes an error code and the number of the line that is being parsed
-
-        Matches error codes to different kinds of errors and stores them in self.error
+        Throws different errors depending on the error code given as an argument
 
         Returns -1
         """
@@ -589,13 +556,7 @@ class Parser():
 
     def parse_func_def_children(self, arg_types: list[str], last_func_def_node: FuncDefNode, new_node: FuncCallNode) -> None:
         """
-        Takes the types of the arguments passed to a function, the corresponding FuncDefNode and the new FuncCallNode
-
-        Keeps Track of the current node inside the internal ast,
-        Stores the types of the function arguments inside the FuncDefNode, now not allowing any other types for this function,
-        Stores the previously preprocessed function body inside a variable
-        Creates AssignNodes representing the function arguments inside the ast, just giving them a type but not a value
-        Calls parse_children()
+        Parses the body of a function definition, represented by tokens into their AST Node
 
         Returns -1 on error, otherwise 0
         """
@@ -619,9 +580,7 @@ class Parser():
     
     def parse_func_call_args(self, tokens: list[Token]) -> list[list[Token]]:
         """
-        Takes the tokens representing the arguments passed to the function being called
-
-        Iterates over each token, keeping track of parenthesis- and bracket-depth and acting accordingly, splitting the tokens into expressions with the comma as a seperator,
+        Parses the arguments to a function call represented by tokens into a list of expressions represented by tokens
         
         Returns an error code between -1 and -3 on error, otherwise a list of the expression passed as arguments
         """
@@ -663,13 +622,7 @@ class Parser():
     
     def parse_assign(self, line: list[Token]) -> int:
         """
-        Takes the line to be parsed
-
-        Creates a new node inside the ast,
-        Parses the expression on the right side of the assignement operator
-        Calls get_array_types() if expression is a list to keep track of the types of the objects inside the list
-        Sets the type attribute of the node inside the ast equal to the type returned by parse_expression()
-        Logs the variable in the var identifier dict of the current scope
+        Parses an assign expression in token representation into its ASTNode
 
         Returns -1 on error, otherwise 0
         """
@@ -678,7 +631,7 @@ class Parser():
         name = line[0].token_v
         if name in ("argc", "argv"):
             self.warning = Warning(f"Overwriting built-in constant '{name}' might lead to unexpected behavior", cur_ln_num, self.file_n)
-        var_type = self.parse_assignment_expression(line, "children", cur_ln_num)
+        var_type = self.parse_assignment_expression(line, cur_ln_num)
         if var_type == -1:
             return -1
         if var_type != () and self.is_valid_type(var_type, ("list",)):
@@ -692,17 +645,9 @@ class Parser():
     
     #################################Expression Parsing###############################
 
-    def parse_expression(self, tokens: list[Token], traversal_type: str, ln_num: int, **exclude: bool) -> str | int:
+    def parse_expression(self, tokens: list[Token], traversal_type: str, ln_num: int, **exclude: bool) -> tuple[str] | int:
         """
-        Takes the tokens representing the expression, the branch of the current node where the expression is expected,
-        the line number and expressions to not allow as keyword args
-
-        Removes the EOL token if existent
-        Removes outside parenthesis
-        Ensures that the expression exists
-        Keeps track of what expressions to look for
-        Calls the corresponding handler function for each type of expression depending on different criteria
-        Throws an error if tokens are not recognized as a valid expression
+        Parses an expression represented by token into its AST Node
 
         Returns -1 on error, otherwise the type of the expression that has been parsed
         """
@@ -727,7 +672,7 @@ class Parser():
             return self.parse_array_var(tokens, traversal_type)
         if len(tokens) >= 3 and cur_expr_map[5] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lparen" and tokens[len(tokens)-1].token_t == "TT_rparen" and self.is_func_call(tokens):
             if self.parse_func_call(tokens, traversal_type, from_expr=True) == -1: return -1
-            return self.func_identifier_dict[tokens[0].token_v].return_type
+            return self.identifier_manager.get_identifier_node(tokens[0].token_v).return_type
         if cur_expr_map[6] and tokens[0].token_t in ("TT_sub", "TT_not", "TT_plus"):
             return self.parse_un_op_expression(tokens, traversal_type, ln_num)
         for i, token in enumerate(tokens):
@@ -742,7 +687,12 @@ class Parser():
         self.error = SyntaxError("Invalid Expression", ln_num, self.file_n)
         return -1
 
-    def parse_assignment_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> str | int:
+    def parse_assignment_expression(self, tokens: list[Token], ln_num: int) -> tuple[str] | int:
+        """
+        Parses an assignment expression in token representation into its AST Node
+
+        Return -1 on error, otherwise the type of the value that has been assigned
+        """
         tokens = self.merge_equ(tokens)
         name = tokens[0].token_v
         operator_idx = self.get_operator_info(tokens, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
@@ -773,17 +723,9 @@ class Parser():
 
         return expr_type
 
-    def parse_slice_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> str | int:
+    def parse_slice_expression(self, tokens: list[Token], traversal_type: str, ln_num: int) -> tuple[str] | int:
         """
-        Takes the tokens representing the expression to be parsed, the branch of the current node where the expression is found
-        and the current line number
-
-        Verifies valid syntax
-        Calls get_operator_info to obtain the leftmost valid operator and its index
-        Creates a new node inside the ast
-        Handles special cases such as e.g. x[1:] or x[:1]
-        Calls parse sides if expression has two sides
-        Verifies that the expression is of type int
+        Takes the tokens representation of a slice expression and parses it into its AST Node 
 
         Returns -1 on error, otherwise ("int",) as slice expressions can only be of type int
         """
@@ -815,15 +757,7 @@ class Parser():
 
     def parse_conditional_expression(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
-        Takes the tokens representing the expression to be parsed and the branch of the current node where the expression is found
-
-        Checks if the operator tokens in tokens have been preprocessed and preprocesses them if they haven't
-        Obtains the leftmost valid operator with the highest precedence and its index
-        Splits the tokens into a left and a right side
-        Creates a new node inside the ast
-        Handles different allowed types depending on the operator
-        Calls parse_sides()
-        Stores the type of the expression in the type attribute of the new node
+        Takes the token representation of a conditional expression and parses it into its AST Node
 
         Returns -1 on error, otherwise the type of the expression
         """
@@ -849,14 +783,7 @@ class Parser():
         
     def parse_binop_expression(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
-        Takes the tokens representing the expression to be parsed and the branch of the current node where the expression is found
-
-        Obtains the leftmost highest precedence operator and its index
-        Handles different allowed types based on the operator
-        Splits the tokens into left and right
-        Creates a new node inside the ast
-        Calls parse_sides()
-        Stores the expression type in the type attribute of the new node
+        Takes the token representation of a binary operator expression and parses it into its AST Node
 
         Returns -1 on error, otherwise the type of the expression
         """
@@ -881,12 +808,7 @@ class Parser():
     
     def get_operator_info(self, tokens: list[Token], operator_precedence_dict: dict[str: int], is_slice_expr: bool = False) -> tuple[str | int, int]:
         """
-        Take the tokens representing an expression, the corresponding operator precedence dict and the fact if the expression is a slice expression
-
-        Iterates over each token
-        Keeps track of bracket and parenthesis depth
-        Verifies that the operator is in a valid spot
-        Verifies that all brackets and parenthesis have been closed and that an operator exists
+        Selects the most precedented operator in an expression using the operator precedence dict and information about parenthesis
 
         Returns (-1, -1) on error, otherwise the found operator and its index
         """
@@ -924,12 +846,8 @@ class Parser():
     
     def parse_sides(self, left: list[Token], right: list[Token], ln_num: int, allowed_types: list[tuple[str, str]], operator: str) -> str | int:
         """
-        Takes the left and right sides of an expression as tokens, the line number, the allowed types for the expression and the operator of the expression
-
-        Calls parse_expression() on each side,
-        Calls resolve_types() to combine the types of the sides into one type
-        Ensures that the expression type is valid with a call to is_valid_type()
-
+        Parses the left and right sides of an expression to their AST Nodes and infers the type of the result of the expression if possible
+    
         Returns -1 on error, otherwise the type of the expression
         """
         left_expr_type = self.parse_expression(left, "left", ln_num, expr_4=False)
@@ -945,12 +863,7 @@ class Parser():
 
     def parse_un_op_expression(self, tokens: list[Token], traversal_type: str, ln_num) -> str | int:
         """
-        Takes the tokens representing the expression and the branch of the current node where the expression is situated
-
-        Obtains the operator
-        Creates a new node inside the ast
-        Calls parse_expression() on the tokens
-        Ensures a valid expression type with calls to is_valid_expression() dependent on the operator
+        Parses the token representation of a unary operator expression to its AST Node
 
         Returns -1 on error, otherwise the type of the expression
         """
@@ -971,16 +884,9 @@ class Parser():
         
     def parse_array_var(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
-        Takes the tokens representing the expression and the branch of the current node where the expression is situated
+        Parses an array indexing expression represented by tokens into its AST Node
 
-        Verifies that the variable exists
-        Verifies that the variable has a subscriptable type
-        Verifies valid syntax
-        Creates a new node inside the ast
-        Calls parse_expression() on the indexing expression
-        Ensures that the indexing expression is of type "int"
-
-        Returns -1 on error, otherwise () (feature not yet supported, still looking for a solution to some problems)
+        Returns -1 on error, otherwise ()
         """
         cur_ln_num = tokens[0].ln
         var_identifier = tokens[0].token_v
@@ -1007,6 +913,11 @@ class Parser():
         return () #Return empty tuple to mark variable as any type as empty tuple will pass all is_valid_type() checks
     
     def get_content_expressions(self, tokens: list[Token]) -> list[list[Token]] | int:
+        """
+        Parses the content of a list literal expression into a list of the element expressions
+
+        Returns -1 on error, otherwise the list of the content expressions
+        """
         content_expressions = []
         cur_content_expr = []
         bracket_depth = 0
@@ -1036,13 +947,7 @@ class Parser():
         
     def parse_array_literal(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
-        Takes the tokens representing the expression and the branch of the current node where the expression is situated
-
-        Handles the case of an empty list
-        Extracts the different expressions representing the list elements
-        Ensures valid syntax, e.g. not this: x = [1, 2,]
-        Creates a new node inside the ast
-        Calls parse_expression on each expression representing an element
+        Parses a list literal expression represented by tokens into its AST Node
 
         Returns -1 on error, otherwise ("list",)
         """
@@ -1083,12 +988,7 @@ class Parser():
         
     def parse_simple_literal_and_var(self, token: Token, traversal_type: str) -> str | int:
         """
-        Takes the token representing the simple literal or var and the branch of the current node where the expression is situated
-
-        Checks for differently typed literals, creates a new node inside the ast
-        In case of a variable:
-            Checks if the variable exists in the current scope
-            Creates a new node inside the ast
+        Parses the token representation of a simple literal or an identifier into its AST Node
 
         Returns -1 on error, otherwise the type of the variable or literal
         """
@@ -1112,6 +1012,9 @@ class Parser():
             if not self.identifier_manager.identifier_exists(name):
                 self.error = NameError(f"Unknown Identifier: '{name}'", token.ln, self.file_n)
                 return -1
+            if name in self.identifier_manager.get_func_identifier_dict():
+                self.error = TypeError("Higher Order functions are not supported", token.ln, self.file_n)
+                return -1
             new_node_id = self.ast.append_node(VarNode(name), traversal_type)
             self.ast.traverse_node_by_id(new_node_id, traversal_type)
             cur_node_type = self.identifier_manager.get_identifier_node(name).type
@@ -1124,21 +1027,11 @@ class Parser():
     
     ########################################Misc########################################
     
-    def resolve_types(self, left_expr_type: tuple[str], right_expr_type: tuple[str], operator: str, ln_num: int) -> tuple[str]:
+    def resolve_types(self, left_expr_type: tuple[str], right_expr_type: tuple[str], operator: str, ln_num: int) -> tuple[str] | int:
         """
-        Takes the type of the left expression, the type of the right expression, the operator of the bigger expression and the line number
+        Inferes the type of a binary operator expression (or conditional expression) based on the types of both sides of the expression and the expression operator
 
-        Handles different combinations of types and operators:
-            Returns ("bool",) if the operator is == or !=
-            Returns the type of the left expression if both sides have the same type and takes into account that the left type might be a union type
-            Returns ("str",) if the sides have the type "str" and "int" and the operator is "*"
-            Returns ("float",) if the sides have the type "int" and "float"
-            All other combinations of types except union types are invalid and lead to an error
-        If one or more sides are of the union type, resolve_types() is called on each possible combination of types generated by get_combinations()
-        Duplicates are eliminated by converting the list to a set and then back to a list
-        Then this list is returned as a tuple
-
-        Returns -1 on error
+        Returns -1 on error, otherwise a tuple representing the possible types of the expression
         """
         if left_expr_type == None or right_expr_type == None or () in left_expr_type or () in right_expr_type:
             return ()
@@ -1166,12 +1059,9 @@ class Parser():
 
     def is_valid_type(self, t1: tuple[str], t2: tuple[str]) -> bool:
         """
-        Takes two tuples containing a normal or union type
-
-        Ensures that the possible union type to be compared does not contain more types than the union type to be compared against
-        Sorts both tuples
+        Compares two tuples representing the types of two values and compares them, returning True when the first tuple is a sublist of the second tuple
         
-        Returns True if the first tuple is a sublist of the second, otherwise False
+        Returns a boolean value
         """
         if t1 == None:
             return True
@@ -1187,13 +1077,9 @@ class Parser():
 
     def is_array_literal(self, tokens: list[Token]) -> bool:
         """
-        Takes the tokens to check and the fact if we are checking for an array literal or an indexing expression
+        Checks if a group of tokens represents a list literal expression
 
-        Returns False if we are looking for a literal and the expression is not wrapped in brackets
-        Iterates over each token
-        Checks if a bracket has been opened and then closed again, making the expression contain multiple lists and making it a BinOpExpression
-
-        Returns True if no bracket has been closed on the lowest bracket depth, otherwise False
+        Returns a boolean value
         """
         if tokens[0].token_t != "TT_lbracket" or tokens[-1].token_t != "TT_rbracket":
             return False
@@ -1210,6 +1096,11 @@ class Parser():
         return True
 
     def is_array_var(self, tokens: list[Token]) -> bool:
+        """
+        Checks if a group of tokens represents an array indexing expression
+
+        Returns a boolean value
+        """
         if tokens[0].token_t != "TT_identifier": return False
         tokens = tokens[1:]
         bracket_depth = 0
@@ -1224,14 +1115,9 @@ class Parser():
     
     def get_array_types(self) -> list[str]:
         """
-        Keeps track of the original current node inside the ast
-        Calls get_iter_nodes() to obtain all ArrayNodes that make up the Varnode from which the function has been called, 
-        even if multiple ArrayNode have been joined together with BinopNodes or other operations
+        Inferes the types of the elements of an ArrayNode, being the current node.
 
-        Checks if get_iter_nodes has found an AssignNode that directly stores the type of its children, making it return the types
-        Iterates over each ArrayNode and stores the types of their children
-
-        Returns -1 on error, otherwise the types of the children of the ArrayNodes making up the current node inside the ast
+        Returns -1 on error, otherwise the types of the children of the ArrayNode making up the current node inside the ast
         """
         cur_node = self.ast.cur_node
         array_nodes = self.get_iter_nodes()
@@ -1248,12 +1134,8 @@ class Parser():
     
     def get_iter_nodes(self) -> list[ASTNode] | tuple[str]:
         """
-        Checks for different current nodes inside the ast and acts accordingly:
-        Returns an ArrayNode if it finds one
-        Returns the children_types of an AssignNode if it has ones
-        Otherwise recursively traverses down the ast
-
-        Returns the ArrayNodes found during the traversal or the direct children types found in an AssignNode
+        Recursively searches all nodes making up the ArrayNode in self.ast.cur_node and returns them.
+        May also return the inferred types directly
         """
         if isinstance(self.ast.cur_node, ForLoopNode):
             if isinstance(self.ast.cur_node.iter, ArrayNode):
@@ -1307,11 +1189,7 @@ class Parser():
 
     def merge_equ(self, tokens: list[Token]) -> list[Token]:
         """
-        Takes a list of tokens representing a conditional expression
-
-        Iterates over each token,
-        Simply appends stores the token in a new list if it is not an operator or it is not followed by an equals operator
-        Handles different combinations of operators with the equals operator by merging them into a single token
+        Takes a list of tokens representing an expression and merges operator tokens neighboring an equ token to one token
 
         Returns the new list of tokens with the merged operators
         """
@@ -1345,12 +1223,7 @@ class Parser():
     
     def get_children(self, child_line_tokens: list[Token], parent_line_indentation: int) -> int:
         """
-        Takes the remaining lines of tokens and the indentation of the statement whose body we are trying to get
-
-        Ensures that a block follows after the statement
-        Iterates over each line following the statement
-        Breaks out of the loop if indentation ends
-        Ensures that consistent indentation is used
+        Obtains the tokens making up the body of a statement containing an indented block
 
         Returns -1 on error, otherwise the amount of lines in the statement body and the lines of tokens representing the body
         """
@@ -1384,11 +1257,7 @@ class Parser():
     
     def get_indentation(self, pind_token: Token) -> int:
         """
-        Takes a pind (positive indent)token
-
-        Returns 0 ih the given token is not a pind token
-        Sets the current block indentation if neccessary
-        Ensures that the indentation is consistent within the given block
+        Obtains the indentation level of a block based on the pind (positive indent) token
 
         Returns -1 on error, otherwise the current indentation in spaces
         """
@@ -1403,10 +1272,7 @@ class Parser():
     
     def get_line_tokens(self, tokens: list[Token]) -> list[list[Token]]:
         """
-        Takes a list of tokens
-
-        Handles the case of an empty list of tokens being passed
-        Iterates over the tokens and groups them into lines, removing quote tokens and EOL tokens
+        Groups the tokens representing a block into their respective lines, represented in a 2-dimensional list
 
         Returns the newly grouped tokens
         """
@@ -1420,12 +1286,15 @@ class Parser():
         return line_tokens
     
     def var_args_checking(self, name: str, arg_types: tuple, cur_ln_num: int) -> bool:
+        """
+        Implements variable argument count functionality, checking the types of arguments for built-in functions
+
+        TODO: Refactor
+
+        Returns a boolean value representing whether the arguments given to the built-in function are valid
+        """
         if name not in VAR_ARG_BUILT_IN_FUNCS:
             return False
-        if name == "print":
-            for i in range(len(self.ast.cur_node.args)):
-                if self.is_valid_type(self.ast.cur_node.args[i].type, ('func',)):
-                    self.ast.cur_node.args[i] = StringNode(f"<function object '{self.ast.cur_node.args[i].name}'>")
         if name == "strip":
             if len(arg_types) == 1:
                 if self.is_valid_type(arg_types[0], ("str",)): return True
@@ -1457,6 +1326,11 @@ class Parser():
         return True
     
     def is_func_call(self, tokens: list[Token]) -> bool:
+        """
+        Checks whether a group of tokens represents a function call expression
+
+        Returns a boolean value
+        """
         paren_depth = 0
         for token in tokens:
             match token.token_t:
@@ -1472,6 +1346,11 @@ class Parser():
         return True
     
     def is_assign(self, line: list[Token]) -> bool:
+        """
+        Checks whether a group of tokens represents an assignment expression
+
+        Returns a boolean value
+        """
         line_copy = deepcopy(line)
         if line_copy[0].token_t == "TT_identifier" and line_copy[1].token_t == "TT_equ":
             return True

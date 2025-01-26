@@ -2,7 +2,7 @@ from src.utils.error import FileError, FlagError
 import sys
 
 HELP_MSG = "Usage: python3 main.py [flags (flag args)] [target filename]"
-FLAGS = ["--show-ast", "--show-tokens", "-o", "-v", "--disable-w", "--import", "--no-out"]
+FLAGS = ["--show-ast", "--show-tokens", "-o", "-v", "--disable-w", "--import", "--no-out", "--log"]
 
 
 class CommandlineHandler():
@@ -35,5 +35,8 @@ class CommandlineHandler():
                     return None, None
                 flags[self.argv[i-1]] = arg
 
+        if "--import" in flags.keys():
+            self.error = FlagError("InvalidFlagError", "The --import flag is reserved for internal use")
+            return None, None
         return file_n, flags
         

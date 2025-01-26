@@ -10,8 +10,3 @@ def reverse_string(string):
         new_string = _char + new_string
     
     return new_string
-
-
-while True:
-    user_input = input(">>> ")
-    print(reverse_string(user_input))

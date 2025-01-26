@@ -68,7 +68,7 @@ class IdentifierContainer():
         return identifier in self.func_identifiers
     
     def merge_identifiers(self, ident_man: IdentifierManager) -> None:
-        self.func_identifier_dict = list(set(self.func_identifier_dict + ident_man.func_identifier_dict))
+        self.func_identifier_dict = list(set(self.func_identifiers + ident_man.func_identifiers))
         self.identifier_dict = ident_man.identifier_dict | self.identifier_dict
         self.invalid_identifier_dict = ident_man.invalid_identifier_dict | self.invalid_identifier_dict
         return None

@@ -68,6 +68,26 @@ class Compiler():
             print("NOTE: Please note that this tool only supports a subset of the python language - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n", file=sys.stderr)
         
         return output
+    
+    def handle_logging(self, component: object, component_output: any) -> None:
+        if "--import" in self.flags: return None
+
+        if component == Lexer:
+            if "-v" in self.flags or "--show-tokens" in self.flags:
+                print("Generated tokens:\n" + component_output.__str__() + "\n")
+            if "--log" in self.flags:
+                with open(self.flags["--log"], "w") as log_file:
+                    log_file.write(f"Log for the pytocpp transpilation process of file '{self.file_n}':\n\n" + "Generated tokens:\n" + component_output.__str__() + "\n\n")
+            
+            return None
+        
+        if "-v" in self.flags or "--show-ast" in self.flags:
+            print("Generated ast:\n" + component_output.__str__() + "\n")
+        if "--log" in self.flags:
+            with open(self.flags["--log"], "a") as log_file:
+                log_file.write("Generated ast:\n" + component_output.__str__() + "\n\n")
+
+        return None
         
     def compile(self):
         """
@@ -77,19 +97,22 @@ class Compiler():
         """
         lexer = Lexer(self.file_n)
         tokens = self.run_component(lexer, lexer.make_tokens, 2)
-        if "--show-tokens" in self.flags.keys():
-            print(tokens, end="\n\n")
+        self.handle_logging(Lexer, tokens)
+
         parser = Parser(tokens, self.file_n, self.flags)
         ast, identifier_manager = self.run_component(parser, parser.make_ast, 3, haswarning=True)
         if "--import" in self.flags:
-            return ast, 
+            return ast, identifier_manager
+        
         ast_optimizer = ASTOptimizationPass(ast, identifier_manager)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
-        if "--show-ast" in self.flags.keys():
-            print(ast)
+        self.handle_logging(Parser, ast)
+
         code_generator = CodeGenerator(ast, self.new_file_n)
         new_file_n = self.run_component(code_generator, code_generator.generate_code, 5)
+
         if "--no-out" not in self.flags.keys():
             print(f"Sucessfully transpiled: {self.file_n} -> {new_file_n}")
+
         return 0
 

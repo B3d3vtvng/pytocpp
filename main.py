@@ -26,10 +26,10 @@ def compile():
         else:
             exit(1)
     except Exception as e:
-        if "-v" in flags.keys():
+        #if "-v" in flags.keys():
             raise e
-        else:
-            print("\nAn unknown error has occured, please use -v flag for a more detailed error message\n")
+        #else:
+            #print("\nAn unknown error has occured, please use -v flag for a more detailed error message\n")
             return 1
 
 return_code = compile()

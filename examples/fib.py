@@ -7,9 +7,3 @@ def fib(n):
         return 1
     else:
         return fib(n - 1) + fib(n - 2)
-    
-while True:
-    user_input = input("Enter a number: ")
-    user_input = strip(user_input)
-    user_input = int(user_input)
-    print(fib(user_input))
