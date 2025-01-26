@@ -15,3 +15,6 @@ test.out
 
 #Ignore .DS_Store
 .DS_Store
+
+#Ignore log file
+log.txt
