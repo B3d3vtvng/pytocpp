@@ -100,7 +100,9 @@ INVALID_VAR_NAMES = [
     "double",
     "constexpr", 
     "const",
-    "auto"
+    "auto",
+    "consteval",
+    "__FILE__"
 ]
 
 INVALID_FUNC_NAMES = [
