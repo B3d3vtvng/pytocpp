@@ -244,9 +244,9 @@ class Parser():
         self.ast.base_node.children = import_ast.base_node.children + self.ast.base_node.children #Merges the ASTs of the current and the imported module
         for i in range(len(args)):
             self.ast.base_node.children.insert(i, args[i]) #Inserts the commandline arguments at the start again
-        self.ast.readjust_ids()
 
-        self.identifier_manager.merge_identifiers(import_ident_man) #Merges the global scope identifiers from the current and the imported module
+        self.identifier_manager.merge_identifiers(import_ident_man) #Merges the global scope identifiers from the current and the imported module    
+        self.ast.readjust_ids()
 
         return 0
 
@@ -382,7 +382,7 @@ class Parser():
             self.error = SyntaxError("Invalid Syntax", line[0].ln, self.file_n)
             return -1
         iter_var_name = line[0].token_v
-        new_node_id = self.ast.append_node(ForLoopNode(iter_var_name))
+        new_node_id = self.ast.append_node(ForLoopNode(self.identifier_manager.generate_relative_identifier(iter_var_name)))
         line = line[2:]
         self.ast.traverse_node_by_id(new_node_id)
         expr_type = self.parse_expression(line, "iter", cur_ln_num, expr_2=False, expr_4=False, expr_6=False, expr_7=False, expr_8=False)
@@ -390,7 +390,7 @@ class Parser():
         if not self.is_valid_type(expr_type, ("str", "list")): 
             self.error = TypeError(f"Object of type '{expr_type} is not iterable'", cur_ln_num, self.file_n)
             return -1
-        iter_var_node = AssignNode(iter_var_name)
+        iter_var_node = AssignNode(self.identifier_manager.get_relative_identifier(iter_var_name))
         self.ast.append_node(iter_var_node)
         if self.ast.cur_node.iter.name in BUILT_IN_FUNC_NAMES:
             self.ast.cur_node.children[0].type = ()

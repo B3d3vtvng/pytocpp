@@ -8,6 +8,9 @@ class IdentifierManager():
         self.global_identifier_container = IdentifierContainer()
         self.ast = ast
 
+    def generate_relative_identifier(self, name: str):
+        return self.get_cur_scope_identifier_container().generate_relative_identifier(name)
+
     def get_relative_identifier(self, name: str) -> str:
         return self.get_cur_scope_identifier_container().get_relative_identifier(name)
 
@@ -60,14 +63,22 @@ class IdentifierContainer():
             raise NameError("Identifier non-existent in the current scope")
         return self.identifier_dict[identifier]
     
-    def set_identifier(self, identifier: str, value: ASTNode) -> None:
+    def generate_relative_identifier(self, identifier: str) -> str:
         if identifier in INVALID_VAR_NAMES or identifier in INVALID_FUNC_NAMES:
-            original_identifier = identifier
             identifier = "_" + identifier
             while identifier in self.identifier_dict:
                 identifier = "_" + identifier
-            self.invalid_identifier_dict[original_identifier] = identifier
-            value.name = identifier
+
+        return identifier
+    
+    def set_identifier(self, identifier: str, value: ASTNode) -> None:
+        if identifier in INVALID_VAR_NAMES:
+            relative_identifier = self.generate_relative_identifier(identifier)
+            self.invalid_identifier_dict[identifier] = relative_identifier
+            identifier = relative_identifier
+
+            if value:
+                value.name = relative_identifier
         self.identifier_dict[identifier] = value
         if isinstance(value, FuncDefNode):
             self.func_identifiers.append(identifier)
