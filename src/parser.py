@@ -693,9 +693,11 @@ class Parser():
 
         Return -1 on error, otherwise the type of the value that has been assigned
         """
-        tokens = self.merge_equ(tokens)
         name = tokens[0].token_v
-        operator_idx = self.get_operator_info(tokens, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
+        tokens = self.merge_equ(tokens)
+        operator, operator_idx = self.get_operator_info(tokens, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)
+        if operator.token_t in ["TT_pequ", "TT_sequ", "TT_dvequ", "TT_mequ", "TT_modequ"]:
+            tokens = self.handle_op_assign(tokens, operator, operator_idx)
         left = tokens[:operator_idx]
         right = tokens[operator_idx+1:]
         new_node_id = self.ast.append_node(AssignNode(name))
@@ -1200,7 +1202,7 @@ class Parser():
                 tokens_merged_equ.append(token)
                 break
             next_token = tokens[i+1]
-            if token.token_t not in ("TT_equ", "TT_greater", "TT_less", "TT_exclam"):
+            if token.token_t not in ("TT_equ", "TT_greater", "TT_less", "TT_exclam", "TT_plus", "TT_sub", "TT_mul", "TT_div", "TT_mod"):
                 tokens_merged_equ.append(token)
                 i += 1
                 continue
@@ -1208,14 +1210,17 @@ class Parser():
                 tokens_merged_equ.append(token)
                 i += 1
                 continue
-            if token.token_t == "TT_equ" and next_token.token_t == "TT_equ":
-                token.token_t = "TT_dequ"
-            elif token.token_t == "TT_greater" and next_token.token_t == "TT_equ":
-                token.token_t = "TT_gequ"
-            elif token.token_t == "TT_less" and next_token.token_t == "TT_equ":
-                token.token_t = "TT_lequ"
-            elif token.token_t == "TT_exclam":
-                token.token_t = "TT_nequ"
+            match token.token_t:
+                case "TT_equ": token.token_t = "TT_dequ"
+                case "TT_greater": token.token_t = "TT_gequ"   
+                case "TT_less": token.token_t = "TT_lequ"
+                case "TT_exclam": token.token_t = "TT_nequ"
+                case "TT_plus": token.token_t = "TT_pequ"
+                case "TT_sub": token.token_t = "TT_sequ"
+                case "TT_mul": token.token_t = "TT_mequ"
+                case "TT_div": token.token_t = "TT_dvequ"
+                case "TT_mod": token.token_t = "TT_modequ"
+
             tokens_merged_equ.append(token)
             i += 2
         return tokens_merged_equ
@@ -1351,11 +1356,26 @@ class Parser():
         Returns a boolean value
         """
         line_copy = deepcopy(line)
-        if line_copy[0].token_t == "TT_identifier" and line_copy[1].token_t == "TT_equ":
-            return True
         line_copy = self.merge_equ(line_copy)
+        if line_copy[0].token_t == "TT_identifier" and line_copy[1].token_t in ["TT_pequ", "TT_sequ", "TT_mequ", "TT_dvequ", "TT_modequ", "TT_equ"]:
+            return True
         if not [token for token in line_copy if token.token_t == "TT_equ"]:
             return False
         operator_idx = self.get_operator_info(line_copy, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
         left = line_copy[:operator_idx]
         return self.is_array_var(left)
+    
+    def handle_op_assign(self, tokens: list[Token], operator: str, operator_idx: int) -> list[Token]:
+        match operator.token_t:
+            case "TT_pequ": op_token = Token(tokens[0].ln, 0, "TT_plus", None)
+            case "TT_sequ": op_token = Token(tokens[0].ln, 0, "TT_sub", None)
+            case "TT_mequ": op_token = Token(tokens[0].ln, 0, "TT_mul", None)
+            case "TT_dvequ": op_token = Token(tokens[0].ln, 0, "TT_div", None)
+            case "TT_modequ": op_token = Token(tokens[0], 0, "TT_mod", None)
+        
+        tokens[operator_idx].token_t = "TT_equ"
+        assign_identifier_token = tokens[0]
+        tokens.insert(operator_idx+1, assign_identifier_token)
+        tokens.insert(operator_idx+2, op_token)
+
+        return tokens

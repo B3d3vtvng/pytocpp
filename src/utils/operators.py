@@ -27,7 +27,12 @@ SLICE_OPERATOR_PRECEDENCE_DICT = {
 }
 
 ASSIGNMENT_OPERATOR_PRECEDENCE_DICT = {
-    "TT_equ": 1
+    "TT_equ": 1,
+    "TT_pequ": 1,
+    "TT_sequ": 1,
+    "TT_mequ": 1,
+    "TT_dvequ": 1,
+    "TT_modequ": 1
 }
 
 EXPR_MAP = {
