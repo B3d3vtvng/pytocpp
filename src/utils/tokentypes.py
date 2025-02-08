@@ -3,15 +3,15 @@ Specifies the tokentypes and keyword tokentypes for the Lexer of the pytoc Pytho
 """
 
 TOKEN_TYPES = {
-    "EOF": ("TT_eof", ""), 
-    "EOL": ("TT_eol", ""),
-    "PIND": ("TT_pind", ""),
-    "BOOL": ("TT_bool", ""),
-    "FLOAT": ("TT_FLOAT", ""),
-    "INT": ("TT_INT", ""),
-    "STR": ("TT_str", ""),
-    "NONE": ("TT_none", "None"),
-    "IDENTIFIER": ("TT_identifier", ""),
+    "EOF": ("TT_eof", None), 
+    "EOL": ("TT_eol", None),
+    "PIND": ("TT_pind", None),
+    "BOOL": ("TT_bool", None),
+    "FLOAT": ("TT_FLOAT", None),
+    "INT": ("TT_INT", None),
+    "STR": ("TT_str", None),
+    "NONE": ("TT_none", None),
+    "IDENTIFIER": ("TT_identifier", None),
     "CMND": ("TT_cmnd", "#"), 
     "LPAREN": ("TT_lparen", "("),
     "RPAREN": ("TT_rparen", ")"),
@@ -35,8 +35,8 @@ TOKEN_TYPES = {
     "RET": ("TT_ret", "return"),
     "IF": ("TT_if", "if"),
     "NOT": ("TT_not", "not"),
-    "AND": ("TT_and", "and"),
-    "OR": ("TT_or", "or"),
+    "AND": ("TT_and", ("and", "&&")),
+    "OR": ("TT_or", ("or", "||")),
     "ELIF": ("TT_elif", "elif"),
     "ELSE": ("TT_else", "else"),
     "WHILE": ("TT_while", "while"),
@@ -62,3 +62,8 @@ KEYWORDS = [
     "AND",
     "OR"
 ]
+
+TOKEN_ALIAS_TO_TOKEN_DICT = {
+    "&&": "and",
+    "||": "or"
+}
