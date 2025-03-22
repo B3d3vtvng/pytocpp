@@ -2,28 +2,39 @@ from __future__ import annotations
 from src.utils.header import INVALID_FUNC_NAMES, INVALID_VAR_NAMES
 from src.nodes import ASTNode, FuncDefNode, AST
 from src.utils.built_in_funcs import BUILT_IN_FUNC_DICT
+from copy import deepcopy
 
 class IdentifierManager():
     def __init__(self, ast: AST) -> None:
         self.global_identifier_container = IdentifierContainer()
         self.ast = ast
 
+    def get_relative_identifier(self, identifier: str) -> str:
+        return self.get_cur_scope_identifier_container().check_invalid_identifier(identifier)
+
+    def get_invalid_identifier(self, name: str) -> str:
+        return self.global_identifier_container.get_invalid_identifier(name)
+
     def generate_relative_identifier(self, name: str):
         return self.get_cur_scope_identifier_container().generate_relative_identifier(name)
 
-    def get_relative_identifier(self, name: str) -> str:
-        return self.get_cur_scope_identifier_container().get_relative_identifier(name)
-
     def identifier_exists(self, identifier: str) -> bool:
-        return self.get_cur_scope_identifier_container().identifier_exists(identifier)
+        if not self.get_cur_scope_identifier_container().identifier_exists(identifier):
+            return self.global_identifier_container.identifier_exists(identifier)
+
+        return True
     
     def get_identifier_node(self, identifier: str) -> ASTNode:
-        return self.get_cur_scope_identifier_container().get_identifier_node(identifier)
+        node = self.get_cur_scope_identifier_container().get_identifier_node(identifier)
+        if node == -1:
+            return self.global_identifier_container.get_identifier_node(identifier)
+        
+        return node
     
-    def set_identifier(self, identifier: str, value: ASTNode, force_global: bool = False) -> None:
+    def set_identifier(self, identifier: str, value: ASTNode, force_global: bool = False, is_func=True) -> None:
         if force_global:
-            return self.global_identifier_container.set_identifier(identifier, value)
-        return self.get_cur_scope_identifier_container().set_identifier(identifier, value)
+            return self.global_identifier_container.set_identifier(identifier, value, is_func=True)
+        return self.get_cur_scope_identifier_container().set_identifier(identifier, value, is_func=True)
 
     def is_func_identifier(self, identifier: str):
         return self.get_cur_scope_identifier_container().is_func_identifier(identifier)
@@ -43,15 +54,16 @@ class IdentifierManager():
 
 class IdentifierContainer():
     def __init__(self) -> None:
-        self.identifier_dict = BUILT_IN_FUNC_DICT
+        self.identifier_dict = deepcopy(BUILT_IN_FUNC_DICT)
         self.invalid_identifier_dict = {}
         self.func_identifiers = list(BUILT_IN_FUNC_DICT.keys())
 
-    def get_relative_identifier(self, name: str) -> str:
-        if name not in self.invalid_identifier_dict.keys():
+    def get_invalid_identifier(self, name) -> str:
+        reverse_inv_ident_dict = {identifier: invalid_identifier for invalid_identifier, identifier in self.invalid_identifier_dict.items()}
+        if name not in reverse_inv_ident_dict.keys():
             return name
         
-        return self.invalid_identifier_dict[name]
+        return reverse_inv_ident_dict[name]
 
     def identifier_exists(self, identifier: str) -> bool:
         identifier = self.check_invalid_identifier(identifier)
@@ -60,25 +72,31 @@ class IdentifierContainer():
     def get_identifier_node(self, identifier: str) -> ASTNode:
         identifier = self.check_invalid_identifier(identifier)
         if identifier not in self.identifier_dict.keys():
-            raise NameError("Identifier non-existent in the current scope")
+            return -1
         return self.identifier_dict[identifier]
     
     def generate_relative_identifier(self, identifier: str) -> str:
         if identifier in INVALID_VAR_NAMES or identifier in INVALID_FUNC_NAMES:
-            identifier = "_" + identifier
-            while identifier in self.identifier_dict:
-                identifier = "_" + identifier
+            new_identifier = "_" + identifier
+            while new_identifier in self.identifier_dict:
+                new_identifier = "_" + identifier
+            
+            self.invalid_identifier_dict[new_identifier] = identifier
+            return new_identifier
 
         return identifier
     
-    def set_identifier(self, identifier: str, value: ASTNode) -> None:
-        if identifier in INVALID_VAR_NAMES:
+    def set_identifier(self, identifier: str, value: ASTNode, is_func=False) -> None:
+        if identifier in INVALID_VAR_NAMES or (is_func and identifier in INVALID_FUNC_NAMES):
             relative_identifier = self.generate_relative_identifier(identifier)
             self.invalid_identifier_dict[identifier] = relative_identifier
             identifier = relative_identifier
 
             if value:
                 value.name = relative_identifier
+
+        identifier = self.check_invalid_identifier(identifier)
+        
         self.identifier_dict[identifier] = value
         if isinstance(value, FuncDefNode):
             self.func_identifiers.append(identifier)

@@ -13,14 +13,14 @@ class ASTOptimizationPass():
         return self.ast
 
     def remove_redundant_func_def(self) -> None:
+        new_children = []
+
         for node in self.ast.base_node.children:
-            if not isinstance(node, FuncDefNode):
-                continue
+            if not isinstance(node, FuncDefNode) or node.func_call_nodes != None:
+                new_children.append(node)
 
-            if node.func_call_nodes != None:
-                continue
+        self.ast.base_node.children = new_children
 
-            self.ast.base_node.children.remove(node)
         return None
 
     def remove_redundant_children(self, node: ASTNode = None) -> None:

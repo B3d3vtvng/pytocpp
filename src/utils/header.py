@@ -1,9 +1,11 @@
 with open("src/utils/default_header.txt") as file:
     DEFAULT_HEADER = file.readlines()
 
+DEFAULT_GLOBS = "Value argc;\nValue argv;\n"
+
 MAIN_WRAPPER = """int main(int __argc, char** __argv){
-    Value argc = Value(__argc);
-    Value argv = Value([__argc, __argv]() {
+    argc = Value(__argc);
+    argv = Value([__argc, __argv]() {
         std::vector<Value> _argv;
         for (int i = 0; i < __argc; ++i) {
             _argv.emplace_back(Value(__argv[i]));
@@ -44,9 +46,9 @@ HEADER_MODULES = [
 
 INCLUDE_INSERT_LINE = 5
 
-VALUE_INSERT_LINE = 33
+VALUE_INSERT_LINE = 36
 
-RUNTIME_INSERT_LINE = 44
+RUNTIME_INSERT_LINE = 47
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",

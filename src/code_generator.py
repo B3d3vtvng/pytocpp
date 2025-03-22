@@ -1,6 +1,6 @@
 from typing import TextIO
 from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
-from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT
+from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT, DEFAULT_GLOBS
 from src.utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
 
@@ -13,6 +13,7 @@ class CodeGenerator():
         self.func_defs = []
         self.header = DEFAULT_HEADER
         self.module_dict = {element: False for element in HEADER_MODULES}
+        self.pure_glob = False
         self.error = None
 
     def open_new_file(self, new_file_n: str) -> TextIO:
@@ -36,6 +37,7 @@ class CodeGenerator():
     def generate_code(self) -> None:
         output = MAIN_WRAPPER
         generated_output = ""
+        globs = DEFAULT_GLOBS + self.make_globs()
         for i in range(len(self.ast.base_node.children)):
             self.ast.cur_node = self.ast.base_node.children[i]
             if self.ast.cur_node.__class__.__name__ != "FuncDefNode":
@@ -45,6 +47,7 @@ class CodeGenerator():
         output = output.replace("%", generated_output)
         if self.func_defs:
             output = '\n\n'.join(self.func_defs) + "\n\n" + output
+        output = globs + "\n" + output
         self.resolve_header()
         output = self.header + "\n\n" + output
         self.new_file.write(output)
@@ -86,14 +89,14 @@ class CodeGenerator():
     
     def generate_assign(self, target_string: str, indentation: int) -> str:
         if self.ast.cur_node.left_expr.__class__.__name__ == "VarNode":
-            type_annotator_str = "Value " if self.ast.cur_node.first_define else ""
+            type_annotator_str = "Value " if (self.pure_glob or not self.ast.get_parent_node(FuncDefNode) == -1) and self.ast.cur_node.first_define else ""
             output = f'{type_annotator_str}{self.ast.cur_node.name} = %;'
             self.ast.traverse_node("value")
             output = self.generate_node(output, in_expr = True)
             self.ast.detraverse_node()
         else:
             self.ast.traverse_node("value")
-            value = self.generate_node()
+            value = self.generate_node(in_expr=True)
             self.ast.detraverse_node()
             self.ast.traverse_node("left_expr")
             self.ast.traverse_node("content")
@@ -156,15 +159,17 @@ class CodeGenerator():
         if self.ast.cur_node.__class__.__name__ == "SliceExpressionNode":
             self.include("vslice")
             if not self.ast.cur_node.left:
-                self.ast.append_node(NumberNode(self.ast.cur_node.parent.child_count-1), "left")
+                lencall_node = FuncCallNode("strip")
+                lencall_node.args = [VarNode(self.ast.cur_node.parent.name), StringNode(" ")]
+                self.ast.append_node(lencall_node, "left")
             if not self.ast.cur_node.right:
                 self.ast.append_node(NumberNode(0), "right")
 
             self.ast.traverse_node("left")
-            left = self.generate_node()
+            left = self.generate_node(in_expr=True)
             self.ast.detraverse_node()
             self.ast.traverse_node("right")
-            right = self.generate_node()
+            right = self.generate_node(in_expr=True)
             self.ast.detraverse_node()
             self.ast.detraverse_node()
 
@@ -178,7 +183,7 @@ class CodeGenerator():
     def generate_idx_expr(self) -> str:
         idx_expr = ""
         while True:
-            idx_expr += self.generate_node()
+            idx_expr += self.generate_node(in_expr=True)
             if self.ast.next_child_node("content") == -1:
                 break
             idx_expr += ", "
@@ -277,7 +282,7 @@ class CodeGenerator():
     
     def generate_func_def(self, target_string: str, indentation: int, **kw_args) -> None:
         body = self.generate_body(indentation)
-        if len(self.ast.cur_node.arg_types) != 0:
+        if len(self.ast.cur_node.arg_names) != 0:
             arg_prefix = "Value "
         else:
             arg_prefix = ""
@@ -353,4 +358,22 @@ class CodeGenerator():
             self.header.insert(insert_line, f"#include <{target_lib}>\n")
             insert_line += 1
         return None
+
+    def make_globs(self) -> str:
+        has_func = False
+        for node in self.ast.base_node.children:
+            if node.__class__ == FuncDefNode:
+                has_func = True
+                break
+
+        if not has_func: 
+            self.pure_glob = True
+            return ""
+
+        assign_nodes = [node for node in self.ast.base_node.children if node.__class__ == AssignNode]
+        glob_str = ''.join([f"Value {node.name};\n" for node in assign_nodes])
+
+        return glob_str
+    
+
             

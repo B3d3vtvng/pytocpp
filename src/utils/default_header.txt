@@ -24,6 +24,9 @@ private:
     value_t value;
 
 public:
+    Value() {
+        value = none{};
+    }
     Value(value_t new_value) {
         value = new_value;
     }

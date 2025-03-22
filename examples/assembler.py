@@ -1,5 +1,11 @@
 TOKENS = ["inc", "dec", "jmp", "tst", "hlt"]
 
+def is_token(str):
+    for tok in TOKENS:
+        if str == tok:
+            return True
+        
+    return False
 
 def has_jmpval(token_name):
     return token_name == "jmp" or token_name == "tst"
@@ -12,7 +18,7 @@ def make_token(line):
     line = strip(line)
     opcode = line[:3]
 
-    if opcode not in TOKENS:
+    if not is_token(opcode):
         print("Invalid Opcode")
         return -1
 

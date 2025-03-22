@@ -1,4 +1,4 @@
-static Value vindex(const Value& container_v, std::vector<Value>& idxs_v){
+static Value vindex(const Value& container_v, std::vector<Value> idxs_v){
         value_t container = container_v.get_value();
         if (!std::holds_alternative<long long>(idxs_v[0].get_value())){
             RunTime runtime;

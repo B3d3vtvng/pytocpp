@@ -316,6 +316,7 @@ class Parser():
             self.error = SyntaxError("Expected identifier", cur_ln_num, self.file_n)
             return -1
         func_identifier, line = line[0].token_v, line[1:]
+        func_identifier = self.identifier_manager.generate_relative_identifier(func_identifier)
         if line[0].token_t != "TT_lparen" or line[len(line)-1].token_t != "TT_rparen":
             self.error = SyntaxError("Expected parenthesis", cur_ln_num, self.file_n)
             return -1
@@ -324,7 +325,7 @@ class Parser():
         if args == -1: return args
         new_node_id = self.ast.append_node(FuncDefNode(func_identifier, args))
         self.ast.traverse_node_by_id(new_node_id)
-        self.identifier_manager.set_identifier(func_identifier, self.ast.cur_node, force_global=True)
+        self.identifier_manager.set_identifier(func_identifier, self.ast.cur_node, force_global=True, is_func=True)
         self.ast.cur_node.identifier_container = IdentifierContainer()
         self.ast.cur_node.arg_names = args
         self.ast.cur_node.indentation = cur_line_indentation
@@ -395,7 +396,7 @@ class Parser():
         if self.ast.cur_node.iter.name in BUILT_IN_FUNC_NAMES:
             self.ast.cur_node.children[0].type = ()
         else:
-            self.ast.cur_node.children[0].type = tuple(set(self.get_array_types()))
+            self.ast.cur_node.children[0].type = tuple(set(self.get_array_types())) if self.ast.cur_node.iter.type != () else ()
         self.identifier_manager.set_identifier(iter_var_name, iter_var_node)
         child_count = self.parse_children(cur_line_indentation, rem_line_tokens)
         self.ast.detraverse_node()
@@ -508,7 +509,7 @@ class Parser():
         arg_exprs = self.parse_func_call_args(line)
         if isinstance(arg_exprs, int):
            return self.handle_arg_parsing_error(arg_exprs, cur_ln_num)
-        new_node_id = self.ast.append_node(FuncCallNode(name), traversal_type)
+        new_node_id = self.ast.append_node(FuncCallNode(self.identifier_manager.get_invalid_identifier(name)), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         new_node = self.ast.cur_node
         arg_types = []
@@ -831,7 +832,7 @@ class Parser():
                 continue
             if paren_depth or bracket_depth or token.token_t not in operator_precedence.keys():
                 continue
-            if i == 0 or i == len(tokens)-1 and not is_slice_expr:
+            if (i == 0 or i == len(tokens)-1) and not is_slice_expr:
                 self.error = SyntaxError("Invalid Syntax", tokens[0].ln, self.file_n)
                 return -1, -1
             if operator_precedence[token.token_t] == 2:
@@ -900,7 +901,6 @@ class Parser():
             self.error = TypeError(f"{var_dec_node.type} object is not subscriptable", cur_ln_num, self.file_n)
             return -1
         content_exprs = self.get_content_expressions(tokens[1:])
-        if content_exprs == -1: return -1
         tokens = tokens[2:len(tokens)-1]
         new_node_id = self.ast.append_node(ArrayVarNode(var_identifier), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)

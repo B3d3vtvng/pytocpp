@@ -4,7 +4,7 @@ Lexer for the pytoc Python Transpiler
 Tokenises the given input.
 """
 
-from src.utils.tokentypes import TOKEN_TYPES, KEYWORDS, TOKEN_ALIAS_TO_TOKEN_DICT
+from src.utils.tokentypes import TOKEN_TYPES, KEYWORDS 
 from src.utils.error import SyntaxError, SizeError
 from src.utils.tokens import Token
 from src.utils.sort_tokens import sort_tokens
@@ -79,27 +79,26 @@ class Lexer():
         for i, line in enumerate(self.raw_code):
             redo_tokens = []
             for token_type in TOKEN_TYPES:
-                token_name, token_idents = TOKEN_TYPES[token_type]
-                if token_idents == None:
+                token_name, token_ident = TOKEN_TYPES[token_type]
+                if token_ident == None:
                     continue
 
-                if not isinstance(token_idents, tuple):
-                    token_idents = (token_idents,)
-
-                if not [True for token_ident in token_idents if token_ident in line]:
+                if token_ident not in line:
                     continue
 
-                token_idx, cur_token_ident = min([(line.index(token_ident), token_ident) for token_ident in token_idents if token_ident in line], key=lambda x: x[0])
+                token_idx = line.index(token_ident)
+                token_end_idx = token_idx + len(token_ident)
 
                 if self.is_floating_point(token_type, token_idx, line):
                     continue
 
-                token = self.make_kw_token(i+1, token_idx, line, cur_token_ident, token_name)
+                token = self.make_kw_token(i+1, token_idx, line, token_ident, token_name)
                 if not token:
+                    if token_ident in line[token_end_idx:]:
+                        redo_tokens.append([token_type, token_end_idx])
                     continue
 
-                token_end_idx = line.index(cur_token_ident)+len(cur_token_ident)
-                if [True for token_ident in token_idents if token_ident in line[token_end_idx:]]:
+                if token_ident in line[token_end_idx:]:
                     redo_tokens.append([token_type, token_end_idx])
                 tokens.append(token)
 
@@ -467,8 +466,4 @@ def get_token_ident(token_name: str) -> str:
         case "TT_lequ": return "<="
         case "TT_nequ": return "!="
         case _:
-            token_ident = TOKEN_TYPES[token_name[3:].upper()][1]
-
-    if isinstance(token_ident, tuple):
-        return token_ident[0]
-    return token_ident
+            return TOKEN_TYPES[token_name[3:].upper()][1]
