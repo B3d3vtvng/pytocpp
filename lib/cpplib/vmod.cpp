@@ -1,4 +1,4 @@
-    static Value vmod(const Value& val_1_v, const Value& val_2_v){
+    static Value vmod(const Value& val_1_v, const Value& val_2_v, const int line, const char* func){
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 
@@ -20,7 +20,7 @@
         }
         else {
             RunTime instance;
-            instance.throw_rt_error("Invalid type for operation: 'mul'");
+            instance.throw_rt_error("Invalid type for operation: 'mod'", line, func);
             return Value(none{});
         }
     }

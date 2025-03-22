@@ -56,10 +56,10 @@ class Parser():
         """
         Initializes the argc and argv commandline arguments
         """
-        self.ast.append_node(AssignNode("argc"))
+        self.ast.append_node(AssignNode("argc", None))
         self.ast.base_node.children[0].type = ("int",)
         self.ast.base_node.children[0].id = -1
-        self.ast.append_node(AssignNode("argv"))
+        self.ast.append_node(AssignNode("argv", None))
         self.ast.base_node.children[1].type = ("list",)
         self.ast.base_node.children[1].id = -2
         self.ast.next_free_id = 1
@@ -383,7 +383,7 @@ class Parser():
             self.error = SyntaxError("Invalid Syntax", line[0].ln, self.file_n)
             return -1
         iter_var_name = line[0].token_v
-        new_node_id = self.ast.append_node(ForLoopNode(self.identifier_manager.generate_relative_identifier(iter_var_name)))
+        new_node_id = self.ast.append_node(ForLoopNode(self.identifier_manager.generate_relative_identifier(iter_var_name), line[0].ln))
         line = line[2:]
         self.ast.traverse_node_by_id(new_node_id)
         expr_type = self.parse_expression(line, "iter", cur_ln_num, expr_2=False, expr_4=False, expr_6=False, expr_7=False, expr_8=False)
@@ -391,7 +391,7 @@ class Parser():
         if not self.is_valid_type(expr_type, ("str", "list")): 
             self.error = TypeError(f"Object of type '{expr_type} is not iterable'", cur_ln_num, self.file_n)
             return -1
-        iter_var_node = AssignNode(self.identifier_manager.get_relative_identifier(iter_var_name))
+        iter_var_node = AssignNode(self.identifier_manager.get_relative_identifier(iter_var_name), None)
         self.ast.append_node(iter_var_node)
         if self.ast.cur_node.iter.name in BUILT_IN_FUNC_NAMES:
             self.ast.cur_node.children[0].type = ()
@@ -413,7 +413,7 @@ class Parser():
             self.error = SyntaxError("Expected colon", line[0].ln, self.file_n)
             return -1
         line = line[1:len(line)-2]
-        new_node_id = self.ast.append_node(WhileLoopNode())
+        new_node_id = self.ast.append_node(WhileLoopNode(line[0].ln))
         self.ast.traverse_node_by_id(new_node_id)
         expr_type = self.parse_expression(line, "condition",cur_ln_num,  expr_4=False)
         if expr_type == -1: return -1
@@ -509,7 +509,7 @@ class Parser():
         arg_exprs = self.parse_func_call_args(line)
         if isinstance(arg_exprs, int):
            return self.handle_arg_parsing_error(arg_exprs, cur_ln_num)
-        new_node_id = self.ast.append_node(FuncCallNode(self.identifier_manager.get_invalid_identifier(name)), traversal_type)
+        new_node_id = self.ast.append_node(FuncCallNode(self.identifier_manager.get_invalid_identifier(name), cur_ln_num), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         new_node = self.ast.cur_node
         arg_types = []
@@ -566,7 +566,7 @@ class Parser():
         block_to_parse = self.ast.cur_node.unparsed_children
         self.ast.cur_node.unparsed_children = None
         for i in range(len(arg_types)):
-            self.ast.append_node(AssignNode(self.ast.cur_node.arg_names[i]))
+            self.ast.append_node(AssignNode(self.ast.cur_node.arg_names[i], None))
             self.identifier_manager.set_identifier(self.ast.cur_node.arg_names[i], self.ast.cur_node.children[i])
             self.ast.cur_node.children[i].type = arg_types[i]
         if self.parse_children(self.ast.cur_node.indentation, block_to_parse=block_to_parse) == -1: return -1
@@ -701,7 +701,7 @@ class Parser():
             tokens = self.handle_op_assign(tokens, operator, operator_idx)
         left = tokens[:operator_idx]
         right = tokens[operator_idx+1:]
-        new_node_id = self.ast.append_node(AssignNode(name))
+        new_node_id = self.ast.append_node(AssignNode(name, tokens[0].ln))
         self.ast.traverse_node_by_id(new_node_id)
         if self.identifier_manager.identifier_exists(left[0].token_v):
             old_def = self.identifier_manager.get_identifier_node(left[0].token_v)
@@ -736,7 +736,7 @@ class Parser():
             return -1
         operator, operator_idx = self.get_operator_info(tokens, SLICE_OPERATOR_PRECEDENCE_DICT, is_slice_expr = True)
         if operator == -1: return -1
-        new_node_id = self.ast.append_node(SliceExpressionNode(), traversal_type)
+        new_node_id = self.ast.append_node(SliceExpressionNode(tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         if operator_idx == len(tokens)-1 or operator_idx == 0:
             if operator_idx == 0:
@@ -770,7 +770,7 @@ class Parser():
         operator_str = get_token_ident(operator.token_t)
         left = tokens[:operator_idx]
         right = tokens[operator_idx+1:]
-        new_node_id = self.ast.append_node(ConditionExpressionNode(operator_str), traversal_type)
+        new_node_id = self.ast.append_node(ConditionExpressionNode(operator_str, tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         if operator.token_t in ("TT_and", "TT_or"):
             allowed_types = CONDITIONAL_EXPRESSION_LOGICAL_OPERATOR_ALLOWED_TYPES
@@ -800,7 +800,7 @@ class Parser():
             allowed_types = BINOP_EXPRESSION_MOD_ALLOWED_TYPES
         left = tokens[:operator_index]
         right = tokens[operator_index+1:]
-        new_node_id = self.ast.append_node(BinOpNode(get_token_ident(operator.token_t)), traversal_type)
+        new_node_id = self.ast.append_node(BinOpNode(get_token_ident(operator.token_t), tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         expr_type = self.parse_sides(left, right, tokens[0].ln, allowed_types, get_token_ident(operator.token_t))
         if expr_type == -1: return -1    
@@ -872,7 +872,7 @@ class Parser():
         operator = UNOP_OPERATOR_DICT[tokens[0].token_t]
         if operator == "+":
             return self.parse_expression(tokens[1:], traversal_type, ln_num)
-        node_id = self.ast.append_node(UnOpNode(operator), traversal_type)
+        node_id = self.ast.append_node(UnOpNode(operator, tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(node_id, traversal_type)
         expr_type = self.parse_expression(tokens[1:], "right", tokens[0].ln, expr_1=False, expr_3=False, expr_4=False, expr_6=False)
         if operator == "-" and not self.is_valid_type(expr_type, UNOP_EXPRESSION_SUB_ALLOWED_TYPES):
@@ -902,7 +902,7 @@ class Parser():
             return -1
         content_exprs = self.get_content_expressions(tokens[1:])
         tokens = tokens[2:len(tokens)-1]
-        new_node_id = self.ast.append_node(ArrayVarNode(var_identifier), traversal_type)
+        new_node_id = self.ast.append_node(ArrayVarNode(var_identifier, tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         for content_expr in content_exprs:
             expr_type = self.parse_expression(content_expr, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False)

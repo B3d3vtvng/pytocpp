@@ -1,4 +1,4 @@
-    static Value sleep(const Value& time_v){
+    static Value sleep(const Value& time_v, const int line, const char* func){
         value_t time = time_v.get_value();
         if (std::holds_alternative<long long>(time)){
             std::chrono::seconds time_sec = std::chrono::seconds(std::get<long long>(time));
@@ -10,7 +10,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Invalid Argument type for built-in function sleep()");
+            instance.throw_rt_error("Invalid Argument type for built-in function sleep()", line, func);
         }
         return Value(none{});
     }

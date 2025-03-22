@@ -1,9 +1,9 @@
-    static Value vnot(const Value& val_v){
+    static Value vnot(const Value& val_v, const int line, const char* func){
         value_t val = val_v.get_value();
 
         if (!std::holds_alternative<bool>(val)){
             RunTime instance;
-            instance.throw_rt_error("Logical operations must be of type 'bool'");
+            instance.throw_rt_error("Logical operations must be of type 'bool'", line, func);
             return Value(none{});
         }
 

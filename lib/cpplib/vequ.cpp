@@ -1,4 +1,4 @@
-    static Value vequ(const Value& val_1_v, const Value& val_2_v){
+    static Value vequ(const Value& val_1_v, const Value& val_2_v, const int line, const char* func){
         value_t val_1 = val_1_v.get_value();
         value_t val_2 = val_2_v.get_value();
 

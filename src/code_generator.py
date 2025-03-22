@@ -3,17 +3,20 @@ from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUN
 from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT, DEFAULT_GLOBS
 from src.utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
+from src.identifier_manager import IdentifierContainer
 
 class CodeGenerator():
-    def __init__(self, ast: AST, new_file_n: str) -> None:
+    def __init__(self, ast: AST, new_file_n: str, ident_container: IdentifierContainer, file_n: str) -> None:
         self.ast = ast
         self.new_file_name = new_file_n
         self.new_file = self.open_new_file(new_file_n)
         self.next_free_temp_idx = 0
         self.func_defs = []
         self.header = DEFAULT_HEADER
+        self.header[7] = self.header[7].replace("%", f"\"{file_n}\"")
         self.module_dict = {element: False for element in HEADER_MODULES}
         self.pure_glob = False
+        self.identifier_container = ident_container
         self.error = None
 
     def open_new_file(self, new_file_n: str) -> TextIO:
@@ -104,7 +107,7 @@ class CodeGenerator():
             self.ast.detraverse_node()
             self.ast.detraverse_node()
             self.include("vindex_assign")
-            output = f"{self.ast.cur_node.name} = RunTime::vindex_assign({self.ast.cur_node.name}, {value}, std::vector<Value>{{{idx_expr}}});"
+            output = f"{self.ast.cur_node.name} = RunTime::vindex_assign({self.ast.cur_node.name}, {value}, std::vector<Value>{{{idx_expr}}}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\");"
         return " " * indentation + target_string.replace("%", output)
     
     def generate_func_call(self, target_string: str, indentation: int, in_expr: bool = False) -> str:
@@ -117,14 +120,26 @@ class CodeGenerator():
                 self.ast.next_child_node("args")
             self.ast.detraverse_node()
         name = self.ast.cur_node.name
+        dbg_args = ""
         if name in BUILT_IN_FUNC_NAMES:
             if name in BUILT_IN_FUNC_TO_MODULE_DICT.keys():
                 self.include(BUILT_IN_FUNC_TO_MODULE_DICT[name])
             name = PY_TO_CPP_BUILT_IN_FUNC_DICT[name]
+            dbg_args = f"{self.ast.cur_node.line}, \"{self.get_function_scope()}\""
+            if arg_count != 0: dbg_args = ", " + dbg_args
+            if name == "RunTime::vprint" or name == "RunTime::vrange":
+                return self.generate_var_arg_func_call(target_string, indentation, name, args, in_expr)
         if not in_expr:
-            return target_string.replace("%", indentation * " " + name + "(" + ', '.join([arg for arg in args]) + ");")
+            return target_string.replace("%", indentation * " " + name + "(" + ', '.join([arg for arg in args]) + dbg_args + ");")
         else:
-            return target_string.replace("%", name + "(" + ', '.join([arg for arg in args]) + ")")
+            return target_string.replace("%", name + "(" + ', '.join([arg for arg in args]) + dbg_args + ")")
+        
+    def generate_var_arg_func_call(self, target_string: str, indentation: int, name: str, args: list[str], in_expr) -> str:
+        dbg_args = f"{self.ast.cur_node.line}, \"{self.get_function_scope()}\", " if name == "RunTime::vrange" else ""
+        if not in_expr:
+            return target_string.replace("%", indentation * " " + name + "(" + dbg_args + ', '.join([arg for arg in args]) + ");")
+        else:
+            return target_string.replace("%", name + "(" + dbg_args + ', '.join([arg for arg in args]) + ")")
     
     def generate_simple_literal(self, target_string: str, indentation: int, **kw_args) -> str:
         node_class = self.ast.cur_node.__class__.__name__
@@ -158,12 +173,15 @@ class CodeGenerator():
         self.ast.traverse_node("content")
         if self.ast.cur_node.__class__.__name__ == "SliceExpressionNode":
             self.include("vslice")
-            if not self.ast.cur_node.left:
-                lencall_node = FuncCallNode("strip")
-                lencall_node.args = [VarNode(self.ast.cur_node.parent.name), StringNode(" ")]
-                self.ast.append_node(lencall_node, "left")
             if not self.ast.cur_node.right:
-                self.ast.append_node(NumberNode(0), "right")
+                binop_node = BinOpNode("-", self.ast.cur_node.parent.line)
+                binop_node.right = NumberNode(1)
+                lencall_node = FuncCallNode("len", self.ast.cur_node.parent.line)
+                lencall_node.args = [VarNode(self.ast.cur_node.parent.name)]
+                binop_node.left = lencall_node
+                self.ast.append_node(binop_node, "right")
+            if not self.ast.cur_node.left:
+                self.ast.append_node(NumberNode(0), "left")
 
             self.ast.traverse_node("left")
             left = self.generate_node(in_expr=True)
@@ -173,12 +191,12 @@ class CodeGenerator():
             self.ast.detraverse_node()
             self.ast.detraverse_node()
 
-            return target_string.replace("%", f"RunTime::vslice({self.ast.cur_node.name}, {left}, {right})")
+            return target_string.replace("%", f"RunTime::vslice({self.ast.cur_node.name}, {left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
         
         self.include("vindex")
         idx_expr = self.generate_idx_expr()
         self.ast.detraverse_node()
-        return target_string.replace("%", f"RunTime::vindex({self.ast.cur_node.name}, std::vector<Value>{{{idx_expr}}})")
+        return target_string.replace("%", f"RunTime::vindex({self.ast.cur_node.name}, std::vector<Value>{{{idx_expr}}}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
 
     def generate_idx_expr(self) -> str:
         idx_expr = ""
@@ -200,7 +218,7 @@ class CodeGenerator():
 
         self.include(OPERATOR_TO_MODULE_DICT[self.ast.cur_node.op])
 
-        return target_string.replace("%", f"RunTime::{BINOP_FUNC_NAMES_DICT[self.ast.cur_node.op]}({left}, {right})")
+        return target_string.replace("%", f"RunTime::{BINOP_FUNC_NAMES_DICT[self.ast.cur_node.op]}({left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
     
     def generate_un_op(self, target_string: str, indentation: int, **kw_args) -> str:
         self.ast.traverse_node("right")
@@ -212,7 +230,7 @@ class CodeGenerator():
         else:
             self.include("vneg")
         
-        return target_string.replace("%", f"RunTime::{UNOP_FUNC_NAMES_DICT[self.ast.cur_node.op]}({right})")
+        return target_string.replace("%", f"RunTime::{UNOP_FUNC_NAMES_DICT[self.ast.cur_node.op]}({right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
 
     def generate_condition_expression(self, target_string: str, indentation: int, **kw_args) -> str:
         self.ast.traverse_node("left")
@@ -224,9 +242,9 @@ class CodeGenerator():
 
         
         if self.ast.cur_node.op in ["and", "or", "!=", "=="]:
-            output = f"RunTime::{LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]}({left}, {right})"
+            output = f"RunTime::{LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]}({left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")"
         else:
-            output = f"RunTime::vcompare({left}, {right}, {LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]})"
+            output = f"RunTime::vcompare({left}, {right}, {LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")"
 
         self.include(OPERATOR_TO_MODULE_DICT[self.ast.cur_node.op])
         return target_string.replace("%", output)
@@ -234,7 +252,7 @@ class CodeGenerator():
     def generate_conditional_statement(self, target_string: str, indentation: int, **kw_args) -> str:
         if self.ast.cur_node.__class__.__name__ != "ElseNode":
             self.ast.traverse_node("condition")
-            condition = self.generate_node("RunTime::vcondition(%)", in_expr = True)
+            condition = self.generate_node(f"RunTime::vcondition(%, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")", in_expr = True)
             self.include("vcondition")
             self.ast.detraverse_node()
         if self.ast.cur_node.__class__.__name__ == "IfNode":
@@ -250,7 +268,7 @@ class CodeGenerator():
     
     def generate_while_loop(self, target_string: str, indentation: int, **kw_args) -> str:
         self.ast.traverse_node("condition")
-        condition = self.generate_node("RunTime::vcondition(%)", in_expr = True)
+        condition = self.generate_node(f"RunTime::vcondition(%, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")", in_expr = True)
         self.include("vcondition")
         self.ast.detraverse_node()
         body = self.generate_body(indentation)
@@ -276,7 +294,7 @@ class CodeGenerator():
         iter = self.generate_node(in_expr = True)
         self.ast.detraverse_node()
         body = self.generate_body(indentation)
-        output = indentation * " " + f"for (Value {self.ast.cur_node.iter_var_name} : RunTime::validate_iter({iter})){{\n{body}{indentation * " "}}}"
+        output = indentation * " " + f"for (Value {self.ast.cur_node.iter_var_name} : RunTime::validate_iter({iter}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")){{\n{body}{indentation * " "}}}"
         self.include("validate_iter")
         return target_string.replace("%", output)
     
@@ -374,6 +392,17 @@ class CodeGenerator():
         glob_str = ''.join([f"Value {node.name};\n" for node in assign_nodes])
 
         return glob_str
+    
+    def get_function_scope(self) -> str:
+        function_scope = self.ast.get_parent_node(FuncDefNode)
+        if function_scope == -1:
+            return "__main__"
+        
+        function_scope = function_scope.name
+        return self.identifier_container.get_invalid_identifier(function_scope)
+        
+
+
     
 
             

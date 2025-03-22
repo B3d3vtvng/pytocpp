@@ -165,7 +165,7 @@ class VarNode(ASTNode):
         return f"VarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Type: {format_type(self.type)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ArrayVarNode(ASTNode):
-    def __init__(self, name: str):
+    def __init__(self, name: str, line: int):
         """
         Node representing the usage of variable identifiers combined with an indexing or slice expression
         """
@@ -174,6 +174,7 @@ class ArrayVarNode(ASTNode):
         self.element_count = None
         self.content = []
         self.type = "list"
+        self.line = line
 
     def __repr__(self) -> str:
         idx_str = ""
@@ -184,7 +185,7 @@ class ArrayVarNode(ASTNode):
         return f"ArrayVarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Content[{idx_str}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class SliceExpressionNode(ASTNode):
-    def __init__(self) -> None:
+    def __init__(self, line: int) -> None:
         """
         Node representing a slice expression
         """
@@ -192,6 +193,7 @@ class SliceExpressionNode(ASTNode):
         self.left = None
         self.right = None
         self.type = "int"
+        self.line = line
 
     def __repr__(self) -> str:
         if self.left:
@@ -202,7 +204,7 @@ class SliceExpressionNode(ASTNode):
         return f"SliceExpressionNode[\n{tab_offset}    Left[\n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: ':'\n{tab_offset}    Right[\n{tab_offset}        {self.right}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class AssignNode(ASTNode):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, line: str) -> None:
         """
         Node representing an assignment expression
         children_types is only used if the value type is 'list' and it stores the types of the list elements
@@ -215,6 +217,7 @@ class AssignNode(ASTNode):
         self.children_types = []
         self.child_count = None
         self.first_define = None
+        self.line = line
 
     def __repr__(self) -> str:
         if self.value != None:
@@ -225,7 +228,7 @@ class AssignNode(ASTNode):
         return f"AssignNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Left Expression[\n{tab_offset}        {self.left_expr}\n{tab_offset}    ]\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Type: {format_type(self.type)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class BinOpNode(ASTNode):
-    def __init__(self, op: str) -> None:
+    def __init__(self, op: str, line: str) -> None:
         """
         Node representing a binary operation expression
         """
@@ -234,6 +237,7 @@ class BinOpNode(ASTNode):
         self.op = op
         self.right = None
         self.type = None
+        self.line = line
 
     def __repr__(self) -> str:
         if self.left:
@@ -244,7 +248,7 @@ class BinOpNode(ASTNode):
         return f"BinOpNode[\n{tab_offset}    Left[ \n{tab_offset}        {self.left}\n{tab_offset}    ]\n{tab_offset}    Operator: '{self.op}'  \n{tab_offset}    Right:[\n{tab_offset}        {self.right}\n{tab_offset}    ]    \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class UnOpNode(ASTNode):
-    def __init__(self, op: str) -> None:
+    def __init__(self, op: str, line: int) -> None:
         """
         Node representing a unary operation expression
         """
@@ -252,6 +256,7 @@ class UnOpNode(ASTNode):
         self.op = op
         self.right = None
         self.type = None
+        self.line = line
 
     def set_type(self, type: str) -> None:
         self.type = type
@@ -264,7 +269,7 @@ class UnOpNode(ASTNode):
         return f"UnOpNode[\n{tab_offset}    Operator: '{self.op}'\n{tab_offset}    Right[\n{tab_offset}        {self.right}\n{tab_offset}    ] \n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
 class ConditionExpressionNode(ASTNode):
-    def __init__(self, op: str) -> None:
+    def __init__(self, op: str, line: str) -> None:
         """
         Node representing a conditional expression
         """
@@ -273,6 +278,7 @@ class ConditionExpressionNode(ASTNode):
         self.op = op
         self.right = None
         self.type = "bool"
+        self.line = line
 
     def __repr__(self) -> str:
         self_repr = BinOpNode.__repr__(self)
@@ -341,7 +347,7 @@ class ReturnNode(ASTNode):
         return f"ReturnNode[\n{tab_offset}    ReturnValue[\n{tab_offset}        {self.return_value}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class FuncCallNode(ASTNode):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, line: int) -> None:
         """
         Node representing a call to a function, args represents the arguments passed to the function while type represents the return type of the FuncDefNode associated with the name
         """
@@ -349,6 +355,7 @@ class FuncCallNode(ASTNode):
         self.name = name
         self.args = []
         self.type = None
+        self.line = line
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -396,7 +403,7 @@ class BreakNode(ASTNode):
         return f"BreakNode[\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class ForLoopNode(ASTNode):
-    def __init__(self, iter_var_name: str) -> None:
+    def __init__(self, iter_var_name: str, line: int) -> None:
         """
         Node representing a for-loop statement
 
@@ -410,6 +417,7 @@ class ForLoopNode(ASTNode):
         self.iter_var_name = iter_var_name
         self.iter = None
         self.children = []
+        self.line = line
 
     def __repr__(self) -> str:
         if self.iter:
@@ -428,7 +436,7 @@ class ForLoopNode(ASTNode):
         return f"ForLoopNode[\n{tab_offset}    Iter Var Name: {self.iter_var_name}\n{tab_offset}    Iter[\n{tab_offset}        {self.iter}\n{tab_offset}    Children[{tab_offset}        {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {children_len}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
 
 class WhileLoopNode(ASTNode):
-    def __init__(self) -> None:
+    def __init__(self, line: int) -> None:
         """
         Node representing a while-loop statement
 
@@ -439,6 +447,7 @@ class WhileLoopNode(ASTNode):
         super().__init__()
         self.condition = None
         self.children = []
+        self.line = line
 
     def __repr__(self) -> str:
         if self.condition:

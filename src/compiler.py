@@ -108,7 +108,7 @@ class Compiler():
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
         self.handle_logging(Parser, ast)
 
-        code_generator = CodeGenerator(ast, self.new_file_n)
+        code_generator = CodeGenerator(ast, self.new_file_n, identifier_manager.global_identifier_container, self.file_n)
         new_file_n = self.run_component(code_generator, code_generator.generate_code, 5)
 
         if "--no-out" not in self.flags.keys():

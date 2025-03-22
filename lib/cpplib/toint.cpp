@@ -1,4 +1,4 @@
-    static Value toint(const Value& val_v){
+    static Value toint(const Value& val_v, const int line, const char* func){
         const value_t raw_val = val_v.get_value();
 
         std::string val;
@@ -20,7 +20,7 @@
         }
         catch (...){
             RunTime instance;
-            instance.throw_rt_error("Cannot convert non-digit to int");
+            instance.throw_rt_error("Cannot convert non-digit to int", line, func);
             return Value(none{});
         }
 

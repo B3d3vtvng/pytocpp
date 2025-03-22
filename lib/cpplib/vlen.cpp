@@ -1,4 +1,4 @@
-    static Value vlen(const Value& container_v){
+    static Value vlen(const Value& container_v, const int line, const char* func){
         value_t container = container_v.get_value();
 
         if (std::holds_alternative<std::vector<Value> >(container)){
@@ -9,7 +9,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot determine length of variable of a non-container type");
+            instance.throw_rt_error("Cannot determine length of variable of a non-container type", line, func);
             return Value(none{});
         }
     }

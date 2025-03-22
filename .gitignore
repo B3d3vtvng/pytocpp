@@ -2,7 +2,7 @@
 __pycache__/
 
 #Ignore all debugger config folders
-pyclib.dSYM/
+test.out.dSYM
 
 #Ignore all .vscode folders
 .vscode/
@@ -11,7 +11,9 @@ pyclib.dSYM/
 test.py
 test2.py
 test.cpp
+test2.cpp
 test.out
+test2.out
 
 #Ignore .DS_Store
 .DS_Store

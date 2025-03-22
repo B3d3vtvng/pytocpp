@@ -1,5 +1,5 @@
     template<typename... Args>
-    static Value vrange(const Args&... args){
+    static Value vrange(const int line, const char* func, const Args&... args){
         std::vector<Value> arg_vec = { Value(args)... };
 
         long long start;
@@ -10,7 +10,7 @@
             value_t stop_v = arg_vec[0].get_value();
             if (!std::holds_alternative<long long>(stop_v)){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range'");
+                instance.throw_rt_error("Invalid argument type for function 'range'", line, func);
                 return Value(none{});
             }
 
@@ -23,7 +23,7 @@
             value_t step_v = arg_vec[2].get_value();
             if (!std::holds_alternative<long long>(step_v)){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range'");
+                instance.throw_rt_error("Invalid argument type for function 'range'", line, func);
                 return Value(none{});
             }
             step = std::get<long long>(step_v);
@@ -37,7 +37,7 @@
             value_t start_v = arg_vec[0].get_value();
             if (!std::holds_alternative<long long>(stop_v) || !std::holds_alternative<long long>(start_v)){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range'");
+                instance.throw_rt_error("Invalid argument type for function 'range'", line, func);
                 return Value(none{});
             }
             stop = std::get<long long>(stop_v);
@@ -58,7 +58,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("range() arg3 must not be zero");
+            instance.throw_rt_error("range() arg3 must not be zero", line, func);
             return Value(none{});
         }
 

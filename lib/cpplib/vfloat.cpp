@@ -1,4 +1,4 @@
-    static Value tofloat(const Value& val_v){
+    static Value tofloat(const Value& val_v, const int line, const char* func){
         value_t val = val_v.get_value();
 
         if (std::holds_alternative<long long>(val)){
@@ -16,11 +16,11 @@
             }
             catch (...){
                 RunTime instance;
-                instance.throw_rt_error("Cannot convert non-digit to float");
+                instance.throw_rt_error("Cannot convert non-digit to float", line, func);
                 return Value(none{});
             }
         }
         RunTime instance;
-        instance.throw_rt_error("Cannot convert non_numerical type or string type to float");
+        instance.throw_rt_error("Cannot convert non_numerical type or string type to float", line, func);
         return Value(none{});
     }

@@ -1,4 +1,4 @@
-    static std::vector<Value> validate_iter(const Value& iter_v){
+    static std::vector<Value> validate_iter(const Value& iter_v, const int line, const char* func){
         value_t iter = iter_v.get_value();
 
         if (std::holds_alternative<std::vector<Value> >(iter)){
@@ -13,7 +13,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot iterate over value of non-container type");
+            instance.throw_rt_error("Cannot iterate over value of non-container type", line, func);
             return std::vector<Value>{};
         }
 

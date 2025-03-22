@@ -1,4 +1,4 @@
-    static Value vneg(const Value& val_v){
+    static Value vneg(const Value& val_v, const int line, const char* func){
         value_t val = val_v.get_value();
 
         if (std::holds_alternative<long long>(val)){
@@ -9,7 +9,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot negate a value that is not of type 'int' or type 'float'");
+            instance.throw_rt_error("Cannot negate a value that is not of type 'int' or type 'float'", line, func);
             return Value(none{}); 
         }
     }

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#define __fname__ %
+
 class Value;
 
 using none = std::monostate;
@@ -38,9 +40,9 @@ public:
 
 class RunTime {
 private:
-    void throw_rt_error(const std::string& error_msg) const {
+    void throw_rt_error(const std::string& error_msg, const int line, const char* func) const {
         std::cout << "\n"
-                  << __FILE__ << ": RuntimeError: " << error_msg
+                  << __fname__ << ":" << line << " in " << func << "(): " << "RuntimeError: " << error_msg
                   << "\n\nNOTE: Please note that this tool only supports a subset of the Python language."
                   << " - Please visit https://github.com/B3d3vtvng/pytocpp/blob/main/README.md#features for more information.\n\n";
         exit(1);

@@ -1,10 +1,10 @@
-    static Value vstrip(const Value& str_v, const Value& strip_v){
+    static Value vstrip(const Value& str_v, const Value& strip_v, const int line, const char* func){
         value_t str_vt = str_v.get_value();
         value_t strip_vt = strip_v.get_value();
 
         if (!std::holds_alternative<std::string>(str_vt) | !std::holds_alternative<std::string>(strip_vt)){
             RunTime instance;
-            instance.throw_rt_error("Invalid argument type for function strip()");
+            instance.throw_rt_error("Invalid argument type for function strip()", line, func);
             return Value(none{});
         }
 
@@ -14,7 +14,7 @@
 
         if (strip.length() != 1){
             RunTime instance;
-            instance.throw_rt_error("Cannot strip more than one character");
+            instance.throw_rt_error("Cannot strip more than one character", line, func);
             return Value(none{});
         }
 
