@@ -10,7 +10,7 @@
             value_t stop_v = arg_vec[0].get_value();
             if (!std::holds_alternative<long long>(stop_v)){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range'", line, func);
+                instance.throw_rt_error("Invalid argument type for function 'range': " + get_dbg_type(stop_v) + ", should be: 'int'", line, func);
                 return Value(none{});
             }
 
@@ -23,7 +23,7 @@
             value_t step_v = arg_vec[2].get_value();
             if (!std::holds_alternative<long long>(step_v)){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range'", line, func);
+                instance.throw_rt_error("Invalid argument type for function 'range': " + get_dbg_type(step_v) + ", should be: 'int'", line, func);
                 return Value(none{});
             }
             step = std::get<long long>(step_v);
@@ -37,7 +37,7 @@
             value_t start_v = arg_vec[0].get_value();
             if (!std::holds_alternative<long long>(stop_v) || !std::holds_alternative<long long>(start_v)){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range'", line, func);
+                instance.throw_rt_error("Invalid argument type for function 'range': start: " + get_dbg_type(start_v) + ", stop: " + get_dbg_type(stop_v), line, func);
                 return Value(none{});
             }
             stop = std::get<long long>(stop_v);

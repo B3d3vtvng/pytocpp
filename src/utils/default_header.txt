@@ -40,6 +40,11 @@ public:
 
 class RunTime {
 private:
+    static std::string get_dbg_type(value_t val){
+        const std::string types[6] = {"'int'", "'float'", "'bool'", "'str'", "'list'", "'NoneType'"};
+        return types[val.index()];
+    }
+
     void throw_rt_error(const std::string& error_msg, const int line, const char* func) const {
         std::cout << "\n"
                   << __fname__ << ":" << line << " in " << func << "(): " << "RuntimeError: " << error_msg

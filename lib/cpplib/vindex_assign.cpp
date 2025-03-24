@@ -2,7 +2,7 @@
         value_t container = container_v.get_value();
         if (!std::holds_alternative<long long>(idxs_v[0].get_value())){
             RunTime runtime;
-            runtime.throw_rt_error("Indexing expressions must be of type int!", line, func);
+            runtime.throw_rt_error("Indexing expressions must be of type int, not " + get_dbg_type(idxs_v[0].get_value()), line, func);
             return Value(none{});
         }
         long long idx = std::get<long long>(idxs_v[0].get_value());
@@ -25,7 +25,7 @@
         else if (std::holds_alternative<std::string>(container_v.get_value())){
             if (!std::holds_alternative<std::string>(assign.get_value())){
                 RunTime runtime;
-                runtime.throw_rt_error("Can only assign a value of type string to a string", line, func);
+                runtime.throw_rt_error("Can only assign a value of type string to a string, not " + get_dbg_type(assign.get_value()), line, func);
                 return Value(none{});
             }
             std::string container_str = std::get<std::string>(container_v.get_value());
@@ -36,7 +36,7 @@
             }
             if (idx > container_str.length()-1){
                 RunTime runtime;
-                runtime.throw_rt_error("Indexing expressions must be of type int!", line, func);
+                runtime.throw_rt_error("Assignment index out of range", line, func);
                 return Value(none{});
             }
             if (idxs_v.size() == 1){
@@ -45,12 +45,12 @@
                 return Value(container_str);
             }
             RunTime runtime;
-            runtime.throw_rt_error("Cannot assign value to index of non-container type", line, func);
+            runtime.throw_rt_error("Cannot assign value to index of non-container type: 'char'", line, func);
             return Value(none{});
         }
         else{
             RunTime runtime;
-            runtime.throw_rt_error("Cannot assign value to index of non-container type", line, func);
+            runtime.throw_rt_error("Cannot assign value to index of non-container type: " + get_dbg_type(container), line, func);
             return Value(none{});
         }
     }

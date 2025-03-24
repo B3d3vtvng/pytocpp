@@ -21,6 +21,6 @@
             }
         }
         RunTime instance;
-        instance.throw_rt_error("Cannot convert non_numerical type or string type to float", line, func);
+        instance.throw_rt_error("Cannot numerical types and str to float, not " + get_dbg_type(val), line, func);
         return Value(none{});
     }

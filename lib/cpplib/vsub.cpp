@@ -20,7 +20,7 @@
         }
         else {
             RunTime instance;
-            instance.throw_rt_error("Invalid type for operation: 'sub'", line, func);
+            instance.throw_rt_error("Invalid type for operation: 'sub': " + get_dbg_type(val_1) + " - " + get_dbg_type(val_2), line, func);
             return Value(none{});
         }
     }

@@ -9,7 +9,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot negate a value that is not of type 'int' or type 'float'", line, func);
+            instance.throw_rt_error("Can only negate values of type 'int' or 'float', not " + get_dbg_type(val), line, func);
             return Value(none{}); 
         }
     }

@@ -20,7 +20,7 @@
         }
         else {
             RunTime instance;
-            instance.throw_rt_error("Invalid type for operation: 'div'", line, func);
+            instance.throw_rt_error("Invalid type for operation: 'div': " + get_dbg_type(val_1) + " / " + get_dbg_type(val_2), line, func);
             return Value(none{});
         }
     }

@@ -10,7 +10,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Invalid Argument type for built-in function sleep()", line, func);
+            instance.throw_rt_error("Invalid Argument type for built-in function sleep(): " + get_dbg_type(time) + ", should be: 'int' or 'float'", line, func);
         }
         return Value(none{});
     }

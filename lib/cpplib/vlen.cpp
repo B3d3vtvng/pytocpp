@@ -9,7 +9,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot determine length of variable of a non-container type", line, func);
+            instance.throw_rt_error("Cannot determine length of variable of a non-container type: " + get_dbg_type(container), line, func);
             return Value(none{});
         }
     }

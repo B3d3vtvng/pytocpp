@@ -4,7 +4,7 @@
 
         if (!std::holds_alternative<bool>(val_1) || !std::holds_alternative<bool>(val_2)){
             RunTime instance;
-            instance.throw_rt_error("Logical operations must be of type 'bool'", line, func);
+            instance.throw_rt_error("Logical operations must be of type 'bool', not " + get_dbg_type(val_1) + " | " + get_dbg_type(val_2), line, func);
             return Value(none{});
         }
 

@@ -2,7 +2,7 @@
         value_t str_input = str_input_v.get_value();
         if (!std::holds_alternative<std::string>(str_input)){
             RunTime instance;
-            instance.throw_rt_error("Invalid argument type for built-in function list()", line, func);
+            instance.throw_rt_error("Invalid argument type for built-in function list(): " + get_dbg_type(str_input) + ", should be: 'str'", line, func);
             return Value(none{});
         }
 

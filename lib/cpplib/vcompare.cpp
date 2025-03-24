@@ -60,7 +60,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Invalid type for comparison", line, func);
+            instance.throw_rt_error("Invalid type for comparison: " + get_dbg_type(val_1) + " compared to " + get_dbg_type(val_2), line, func);
             return Value(none{});
         }
     }

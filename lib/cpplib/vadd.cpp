@@ -30,7 +30,7 @@
         }
         else {
             RunTime instance;
-            instance.throw_rt_error("Invalid type for operation: 'add'", line, func);
+            instance.throw_rt_error("Invalid type for operation: 'add': " + get_dbg_type(val_1) + " + " + get_dbg_type(val_2), line, func);
             return Value(none{});
         }
     }

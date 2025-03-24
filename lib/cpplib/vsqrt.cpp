@@ -22,6 +22,6 @@
             return Value(res);
         }
         RunTime instance;
-        instance.throw_rt_error("Invalid operant type for operation 'sqrt'", line, func);
+        instance.throw_rt_error("Invalid operant type for operation 'sqrt': " + get_dbg_type(val) + ", should be 'int' or 'float'", line, func);
         return Value(none{});
     }

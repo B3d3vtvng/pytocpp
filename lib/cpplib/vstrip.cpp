@@ -4,7 +4,7 @@
 
         if (!std::holds_alternative<std::string>(str_vt) | !std::holds_alternative<std::string>(strip_vt)){
             RunTime instance;
-            instance.throw_rt_error("Invalid argument type for function strip()", line, func);
+            instance.throw_rt_error("Invalid argument type for function strip(): strip(" + get_dbg_type(str_vt) + ", " + get_dbg_type(strip_vt) + "), should be: strip('str', 'str')", line, func);
             return Value(none{});
         }
 

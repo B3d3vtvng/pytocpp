@@ -13,7 +13,7 @@
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Cannot iterate over value of non-container type", line, func);
+            instance.throw_rt_error("Cannot iterate over value of non-container type: " + get_dbg_type(iter) + ", should be 'list' or 'str'", line, func);
             return std::vector<Value>{};
         }
 

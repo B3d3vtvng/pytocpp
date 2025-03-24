@@ -2,7 +2,7 @@
         value_t command = command_v.get_value();
         if (!std::holds_alternative<std::string>(command)){
             RunTime instance;
-            instance.throw_rt_error("Invalid argument type for build-in function os_run()", line, func);
+            instance.throw_rt_error("Invalid argument type for build-in function os_run(): " + get_dbg_type(command) + ", should be: 'str'", line, func);
             return Value(none{});
         }
 

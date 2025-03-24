@@ -2,7 +2,7 @@
         value_t fname = fname_v.get_value();
         if (!std::holds_alternative<std::string>(fname)){
             RunTime instance;
-            instance.throw_rt_error("Invalid filename", line, func);
+            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname) + ", should be: 'str'", line, func);
             return Value(none{});
         }
         std::string fname_str = std::get<std::string>(fname);
