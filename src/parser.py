@@ -901,6 +901,7 @@ class Parser():
             self.error = TypeError(f"{var_dec_node.type} object is not subscriptable", cur_ln_num, self.file_n)
             return -1
         content_exprs = self.get_content_expressions(tokens[1:])
+        if content_exprs == -1: return -1
         tokens = tokens[2:len(tokens)-1]
         new_node_id = self.ast.append_node(ArrayVarNode(var_identifier, tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)

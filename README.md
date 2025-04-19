@@ -45,7 +45,7 @@ Please let me know if you notice any other limitations.
 
 ## Build process
 
-I am proud to say that the python part of this project has close to no dependencies. The very little dependencies are part of the standart librarie of their respective language. For the C++ part of the project, a basic C++ compiler should do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
+I am proud to say that the python part of this project has close to no dependencies. The very little dependencies are part of the standart library of their respective language. For the C++ part of the project, a basic C++ compiler should do the job and in general, just cloning the project and running the main file with the file to compile being the first commandline argument should be enough. C++ Version 17+ is required.
 
 ## Shell interface
 
