@@ -216,7 +216,7 @@ class Lexer():
         elif quote_idxs == []:
             return None
         for start_idx, end_idx in quote_idxs:
-            res = self.make_str_token(line, line_tokens, line_num, start_idx, end_idx)
+            res = self.make_str_token(line, new_line_tokens, line_num, start_idx, end_idx)
             str_tokens.append(res[0])
             new_line_tokens = res[1]
         return str_tokens, new_line_tokens
