@@ -1,9 +1,8 @@
-    static void __exit(const Value& exit_code_v, const int line, const char* func){
-        value_t exit_code = exit_code_v.get_value();
-        if (!std::holds_alternative<long long>(exit_code)){
+    [[noreturn]] static void __exit(const Value& exit_code, const int line, const char* func){
+        if (!exit_code.is<long long>()){
             RunTime instance;
             instance.throw_rt_error("Invalid type for return code: " + get_dbg_type(exit_code) + ", should be: 'int'", line, func);
             return;
         }
-        exit(std::get<long long>(exit_code));
+        exit(exit_code.as<long long>());
     }

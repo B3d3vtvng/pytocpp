@@ -1,20 +1,18 @@
-    static Value fwrite(const Value& fname_v, const Value finput_v, const int line, const char* func){
-        value_t fname = fname_v.get_value();
-        value_t finput = finput_v.get_value();
-        if (!std::holds_alternative<std::string>(fname)){
+    static Value fwrite(const Value& fname, const Value& finput, const int line, const char* func){
+        if (!fname.is<std::string>()){
             RunTime instance;
-            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname) + ", should be: 'str'", line, func);
+            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname.value) + ", should be: 'str'", line, func);
             return Value(none{});
         }
 
-        if (!std::holds_alternative<std::string>(finput)){
+        if (!finput.is<std::string>()){
             RunTime instance;
-            instance.throw_rt_error("Invalid type for file input: " + get_dbg_type(fname) + ", should be: 'str'", line, func);
+            instance.throw_rt_error("Invalid type for file input: " + get_dbg_type(fname.value) + ", should be: 'str'", line, func);
             return Value(none{});
         }
 
-        std::string finput_str = finput.tostr()
-        std::string fname_str = std::get<std::string>(fname);
+        std::string finput_str = finput.as<std::string>();
+        std::string fname_str = fname.as<std::string();
         std::ofstream file;
         try{
             file = std::ofstream(fname_str);

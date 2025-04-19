@@ -389,7 +389,7 @@ class CodeGenerator():
             return ""
 
         assign_nodes = [node for node in self.ast.base_node.children if node.__class__ == AssignNode]
-        glob_str = ''.join([f"Value {node.name};\n" for node in assign_nodes])
+        glob_str = ''.join(list(set([f"Value {node.name};\n" for node in assign_nodes])))
 
         return glob_str
     

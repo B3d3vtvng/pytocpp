@@ -1,20 +1,18 @@
-    static Value fwritelines(const Value& fname_v, const Value& finput_v, const int line, const char* func){
-        value_t fname = fname_v.get_value();
-        value_t finput = finput_v.get_value();
-        if (!std::holds_alternative<std::string>(fname)){
+    static Value fwritelines(const Value& fname, const Value& finput, const int line, const char* func){
+        if (!fname.is<std::string>()){
             RunTime instance;
-            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname), line, func);
+            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname.value), line, func);
             return Value(none{});
         }
 
-        if (!std::holds_alternative<std::vector<Value> >(finput)){
+        if (!finput.is<std::vector<Value>>()){
             RunTime instance;
-            instance.throw_rt_error("Invalid type for file input: " + get_dbg_type(fname) + ", should be: 'list[str]'", line, func);
+            instance.throw_rt_error("Invalid type for file input: " + get_dbg_type(fname.value) + ", should be: 'list[str]'", line, func);
             return Value(none{});
         }
 
-        std::vector<Value> finput_vec = std::get<std::vector<Value> >(finput);
-        std::string fname_str = std::get<std::string>(fname);
+        std::vector<Value> finput_vec = finput.as<std::vector<Value>>();
+        std::string fname_str = fname.as<std::string>();
         std::ofstream file;
         try{
             file = std::ofstream(fname_str);
@@ -30,18 +28,14 @@
             return Value(none{});
         }
 
-        value_t line;
-
-        for (const auto line_v : finput_vec){
-            line = line_v.get_value();
-
-            if (!std::holds_alternative<std::string>(line)){
+        for (const Value line : finput_vec){
+            if (!line.is<std::string>()){
                 RunTime instance;
-                instance.throw_rt_error("Invalid type for file input: " + get_dbg_type(line) + ", should be: 'list[str]'", line, func);
+                instance.throw_rt_error("Invalid type for file input: " + get_dbg_type(line.value) + ", should be: 'list[str]'", line, func);
                 return Value(none{});
             }
 
-            file << line << "\n";
+            file << line.as<std::string>() << "\n";
         }
         file.close();
         return Value(none{});

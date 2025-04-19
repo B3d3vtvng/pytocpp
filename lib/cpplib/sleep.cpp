@@ -1,16 +1,15 @@
-    static Value sleep(const Value& time_v, const int line, const char* func){
-        value_t time = time_v.get_value();
-        if (std::holds_alternative<long long>(time)){
-            std::chrono::seconds time_sec = std::chrono::seconds(std::get<long long>(time));
+    static Value sleep(const Value& time, const int line, const char* func){
+        if (time.is<long long>()){
+            std::chrono::seconds time_sec = std::chrono::seconds(time.as<long long>());
             std::this_thread::sleep_for(time_sec);
         }
-        else if (std::holds_alternative<long double>(time)){
-            std::chrono::duration<long double> time_dur = std::chrono::duration<long double>(std::get<long double>(time));
+        else if (time.is<long double>()){
+            std::chrono::duration<long double> time_dur = std::chrono::duration<long double>(time.as<long double>());
             std::this_thread::sleep_for(time_dur);
         }
         else{
             RunTime instance;
-            instance.throw_rt_error("Invalid Argument type for built-in function sleep(): " + get_dbg_type(time) + ", should be: 'int' or 'float'", line, func);
+            instance.throw_rt_error("Invalid Argument type for built-in function sleep(): " + get_dbg_type(time.value) + ", should be: 'int' or 'float'", line, func);
         }
         return Value(none{});
     }

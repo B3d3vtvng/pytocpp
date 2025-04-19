@@ -1,16 +1,13 @@
-    static Value vstrip(const Value& str_v, const Value& strip_v, const int line, const char* func){
-        value_t str_vt = str_v.get_value();
-        value_t strip_vt = strip_v.get_value();
-
-        if (!std::holds_alternative<std::string>(str_vt) | !std::holds_alternative<std::string>(strip_vt)){
+    static Value vstrip(const Value& str, const Value& strip, const int line, const char* func){
+        if (!str_vt.is<std::string>() | !strip_vt.is<std::string>()){
             RunTime instance;
-            instance.throw_rt_error("Invalid argument type for function strip(): strip(" + get_dbg_type(str_vt) + ", " + get_dbg_type(strip_vt) + "), should be: strip('str', 'str')", line, func);
+            instance.throw_rt_error("Invalid argument type for function strip(): strip(" + get_dbg_type(str_vt.value) + ", " + get_dbg_type(strip_vt) + "), should be: strip('str', 'str')", line, func);
             return Value(none{});
         }
 
-        std::string str = std::get<std::string>(str_vt);
-        std::string strip = std::get<std::string>(strip_vt);
-        std::string new_string = "";
+        std::string& str = str_vt.as<std::string>();
+        std::string& strip = strip_vt.as<std::string>();
+        std::string& new_string = "";
 
         if (strip.length() != 1){
             RunTime instance;

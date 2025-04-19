@@ -22,19 +22,28 @@ enum Compare {
 using cmp_t = Compare;
 
 class Value {
-private:
+public:
     value_t value;
 
-public:
-    Value() {
-        value = none{};
-    }
+    Value (){ value = none{};}
+
     Value(value_t new_value) {
         value = new_value;
     }
 
-    value_t get_value() const {
-        return value;
+    template <typename T>
+    T& as() {
+        return std::get<T>(value);
+    }
+
+    template <typename T>
+    const T& as() const {
+        return std::get<T>(value);
+    }
+
+    template <typename T>
+    bool is() const {
+        return std::holds_alternative<T>(value);
     }
 };
 

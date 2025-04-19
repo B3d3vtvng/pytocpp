@@ -1,11 +1,10 @@
-    static Value freadlines(const Value& fname_v, const int line, const char* func){
-        value_t fname = fname_v.get_value();
-        if (!std::holds_alternative<std::string>(fname)){
+    static Value freadlines(const Value& fname, const int line, const char* func){
+        if (!fname.is<std::string>()){
             RunTime instance;
-            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname) + ", should be: 'str'", line, func);
+            instance.throw_rt_error("Invalid type for filename: " + get_dbg_type(fname.value) + ", should be: 'str'", line, func);
             return Value(none{});
         }
-        std::string fname_str = std::get<std::string>(fname);
+        std::string fname_str = fname.as<std::string>();
         std::ifstream file;
         try{
             file = std::ifstream(fname_str);

@@ -1,15 +1,13 @@
-    static Value tofloat(const Value& val_v, const int line, const char* func){
-        value_t val = val_v.get_value();
-
-        if (std::holds_alternative<long long>(val)){
-            long long int_val = std::get<long long>(val);
-            return Value(static_cast<long double>(int_val));
+    static Value tofloat(const Value& val, const int line, const char* func){
+        if (val.is<long long>()){
+            long long int_val = val.as<long long>();
+            return Value(static_cast<long double>(std::round(int_val)));
         }
-        else if (std::holds_alternative<long double>(val)){
+        else if (val.is<long double>()){
             return val_v;
         }
-        else if (std::holds_alternative<std::string>(val)){
-            std::string str_val = std::get<std::string>(val);
+        else if (val.is<std::string>()){
+            std::string& str_val = val.as<std::string>();
             try{
                 long double float_val = std::stof(str_val);
                 return Value(float_val);
@@ -21,6 +19,6 @@
             }
         }
         RunTime instance;
-        instance.throw_rt_error("Cannot numerical types and str to float, not " + get_dbg_type(val), line, func);
+        instance.throw_rt_error("Cannot numerical types and str to float, not " + get_dbg_type(val.value), line, func);
         return Value(none{});
     }

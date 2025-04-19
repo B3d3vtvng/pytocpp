@@ -1,50 +1,42 @@
     template<typename... Args>
     static Value vrange(const int line, const char* func, const Args&... args){
-        std::vector<Value> arg_vec = { Value(args)... };
+        const std::vector<Value>& arg_vec = { Value(args)... };
 
         long long start;
         long long stop;
         long long step;
 
-        if (arg_vec.size() == 1){
-            value_t stop_v = arg_vec[0].get_value();
-            if (!std::holds_alternative<long long>(stop_v)){
-                RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range': " + get_dbg_type(stop_v) + ", should be: 'int'", line, func);
-                return Value(none{});
-            }
-
-            start = 0;
-            stop = std::get<long long>(stop_v);
-            step = 1;
+        if (arg_vec.size() == 0 || arg_vec.size() > 3){
+            RunTime instance;
+            instance.throw_rt_error("Invalid argument count for function'range', expected: 1-3", line, func);
+            return Value(none{});
         }
 
-        if (arg_vec.size() == 3){
-            value_t step_v = arg_vec[2].get_value();
-            if (!std::holds_alternative<long long>(step_v)){
+        for (const Value arg : arg_vec){
+            if (!arg.is<long long>()){
                 RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range': " + get_dbg_type(step_v) + ", should be: 'int'", line, func);
+                instance.throw_rt_error("Invalid argument type for function'range', expected: int, recieved: " + get_dbg_type(arg.value), line, func);
                 return Value(none{});
             }
-            step = std::get<long long>(step_v);
+        }
+
+        if (arg_vec.size() == 1){
+            start = 0;
+            stop = arg_vec[0].as<long long>();
+            step = 1;
+        }
+        else if (arg_vec.size() == 2){
+            start = arg_vec[0].as<long long>();
+            stop = arg_vec[1].as<long long>();
+            step = 1;
         }
         else{
-            step = 1;
+            start = arg_vec[0].as<long long>();
+            stop = arg_vec[1].as<long long>();
+            step = arg_vec[2].as<long long>();
         }
 
-        if (arg_vec.size() >= 2){
-            value_t stop_v = arg_vec[1].get_value();
-            value_t start_v = arg_vec[0].get_value();
-            if (!std::holds_alternative<long long>(stop_v) || !std::holds_alternative<long long>(start_v)){
-                RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function 'range': start: " + get_dbg_type(start_v) + ", stop: " + get_dbg_type(stop_v), line, func);
-                return Value(none{});
-            }
-            stop = std::get<long long>(stop_v);
-            start = std::get<long long>(start_v);
-        }
-
-        std::vector<Value> output_vec;
+        std::vector<Value> output_vec = std::vector<Value>();
 
         if (step > 0){
             for (long long i = start; i<stop;i+=step){

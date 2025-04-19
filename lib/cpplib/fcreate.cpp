@@ -1,11 +1,10 @@
-    static Value fcreate(const Value& fname_v, const int line, const char* func){
-        value_t fname = fname_v.get_value();
-        if (!std::holds_alternative<std::string>(fname)){
+    static Value fcreate(const Value& fname, const int line, const char* func){
+        if (!fname.is<std::string>()){
             RunTime instance;
             instance.throw_rt_error("Invalidtype for filename: " + get_dbg_type(fname) + ", should be: 'str'", line);
             return Value(none{});
         }
-        std::string fname_str = std::get<std::string>(fname);
+        std::string fname_str = fname.as<std::string>();
         std::ofstream file;
         try{
             file = std::ofstream(fname_str);

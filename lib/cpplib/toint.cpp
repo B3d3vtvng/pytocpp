@@ -1,28 +1,29 @@
-    static Value toint(const Value& val_v, const int line, const char* func){
-        const value_t raw_val = val_v.get_value();
-
-        std::string val;
-        if (std::holds_alternative<long long>(raw_val)){
+    static Value toint(const Value& val, const int line, const char* func){
+        if (val.is<long long>()){
             return val_v;
         }
-        else if (std::holds_alternative<long double>(raw_val)){
-            const long double val = std::get<long double>(raw_val);
+        else if (val.is<long double>()){
+            return Value(static_cast<long long>(std::round(val.as<long double>())));
+        }
+        else if (val.is<std::string>()){
+            long long int_val;
+            try{
+                int_val = std::stoll(val);
+            }
+            catch (...){
+                RunTime instance;
+                instance.throw_rt_error("Cannot convert non-digit to int", line, func);
+                return Value(none{});
+            }
 
-            return Value(static_cast<long long>(std::round(val)));
+            return Value(int_val);
         }
-        else if (std::holds_alternative<std::string>(raw_val)){
-            val = std::get<std::string>(raw_val);
+        else if (val.is<bool>()){
+            return Value(static_cast<long long>(val.as<bool>()));
         }
-
-        int int_val;
-        try{
-            int_val = std::stoll(val);
-        }
-        catch (...){
+        else{
             RunTime instance;
-            instance.throw_rt_error("Cannot convert non-digit to int", line, func);
+            instance.throw_rt_error("Can only convert string-like object or numerical type to int, not " + get_dbg_type(val.value), line, func);
             return Value(none{});
         }
-
-        return Value(int_val);
     }

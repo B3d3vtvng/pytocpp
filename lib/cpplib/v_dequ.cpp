@@ -1,35 +1,28 @@
-    bool operator==(const Value& val_1_v) const{
-        value_t val_1 = val_1_v.get_value();
-        value_t val_2 = value;
-
-        if (std::holds_alternative<long long>(val_1) && std::holds_alternative<long double>(val_2)) {
-            return std::get<long long>(val_1) == std::get<long double>(val_2);
-        }
-        else if (std::holds_alternative<long double>(val_1) && std::holds_alternative<long long>(val_2)) {
-            return std::get<long double>(val_1) == std::get<long long>(val_2);
+    bool operator==(const Value& other) const{
+        if (is<none>() && other.is<none>()){
+            return true;
         }
 
-        if (val_1.index() != val_2.index()){
-            return false;
+        if (is<std::vector<Value>>() && other.is<std::vector<Value>>()){
+            const std::vector<Value>& lvec = as<std::vector<Value>>();
+            const std::vector<Value>& rvec = other.as<std::vector<Value>>();
+            if (lvec.size() != rvec.size()){return false;}
+
+            for (int i = 0; i < lvec.size(), i++){
+                if (!(lvec[i] == rvec[i])){return false;}
+            }
+            return true;
         }
 
-        if (std::holds_alternative<long long>(val_1)){
-            return std::get<long long>(val_1) == std::get<long long>(val_2);
+        if (is<long long>() && other.is<long double>()) {
+            return static_cast<long double>(as<long long>()) == other.as<long double>();
         }
-        else if (std::holds_alternative<long double>(val_1)){
-            return std::get<long double>(val_1) == std::get<long double>(val_2);
+
+        if (is<long double>() && other.is<long long>()) {
+            return as<long double>() == static_cast<long double>(other.as<long long>());
         }
-        else if (std::holds_alternative<bool>(val_1)){
-            return std::get<bool>(val_1) == std::get<bool>(val_2);
+
+        if (value.index() == other.value.index()){
+            return value == other.value;
         }
-        else if (std::holds_alternative<std::string>(val_1)){
-            return std::get<std::string>(val_1) == std::get<std::string>(val_2);
-        }
-        else if (std::holds_alternative<std::vector<Value> >(val_1)){
-            return std::get<std::vector<Value> >(val_1) == std::get<std::vector<Value> >(val_2);
-        }
-        else if (std::holds_alternative<none>(val_1)){
-            return std::get<none>(val_1) == std::get<none>(val_2);
-        }
-        return false;
     }
