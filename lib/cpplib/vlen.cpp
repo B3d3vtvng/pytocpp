@@ -1,6 +1,6 @@
     static Value vlen(const Value& container, const int line, const char* func){
         if (container.is<std::vector<Value> >()){
-            return Value(static_cast<long long>(container.as<std::vector<Value> >.size()));
+            return Value(static_cast<long long>(container.as<std::vector<Value> >().size()));
         }
         else if (container.is<std::string>()){
             return Value(static_cast<long long>(container.as<std::string>().length()));

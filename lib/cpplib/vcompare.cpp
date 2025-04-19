@@ -1,4 +1,4 @@
-    static Value vcompare(const Value& val_1_v, const Value& val_2_v, const cmp_t& compare_type, const int line, const char* func){
+    static Value vcompare(const Value& val_1, const Value& val_2, const cmp_t& compare_type, const int line, const char* func){
         if (val_1.is<long long>() && val_2.is<long long>()) {
             if (compare_type == GREATER){
                 return Value(val_1.as<long long>() > val_2.as<long long>());

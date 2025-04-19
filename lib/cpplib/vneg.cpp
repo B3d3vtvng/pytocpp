@@ -1,4 +1,4 @@
-    static Value vneg(const Value& val_v, const int line, const char* func){
+    static Value vneg(const Value& val, const int line, const char* func){
         if (val.is<long long>()){
             return Value(-val.as<long long>());
         }

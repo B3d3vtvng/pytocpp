@@ -1,6 +1,6 @@
     static Value toint(const Value& val, const int line, const char* func){
         if (val.is<long long>()){
-            return val_v;
+            return val;
         }
         else if (val.is<long double>()){
             return Value(static_cast<long long>(std::round(val.as<long double>())));
@@ -8,7 +8,7 @@
         else if (val.is<std::string>()){
             long long int_val;
             try{
-                int_val = std::stoll(val);
+                int_val = std::stoll(val.as<std::string>());
             }
             catch (...){
                 RunTime instance;

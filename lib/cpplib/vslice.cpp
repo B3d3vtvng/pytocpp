@@ -1,7 +1,7 @@
     static Value vslice(const Value &iterable, const Value &slice_left, const Value &slice_right, const int line, const char* func){
         if (!slice_left.is<long long>() || !slice_right.is<long long>()){
             RunTime instance;
-            instance.throw_rt_error("Slice expressions must be of type 'int', not [" + get_dbg_type(slice_left) + ":" + get_dbg_type(slice_right) + "]", line, func);
+            instance.throw_rt_error("Slice expressions must be of type 'int', not [" + get_dbg_type(slice_left.value) + ":" + get_dbg_type(slice_right.value) + "]", line, func);
             return Value(none{});
         }
 
@@ -16,8 +16,8 @@
                 return Value(none{});
             }
 
-            std::vector<Value>& new_iterable;
-            std::vector<Value>& iter_vec = iterable.as<std::vector<Value>>();
+            std::vector<Value> new_iterable;
+            const std::vector<Value>& iter_vec = iterable.as<std::vector<Value>>();
             for (long long i = slice_left.as<long long>(); i < slice_right.as<long long>(); i++){
                 new_iterable.push_back(iter_vec[i]);
             }
@@ -39,8 +39,8 @@
                 return Value(none{});
             }
 
-            std::string& new_iterable;
-            std::string& iter_str = iterable.as<std::string>();
+            std::string new_iterable;
+            const std::string& iter_str = iterable.as<std::string>();
             for (long long i = slice_left.as<long long>(); i < slice_right.as<long long>(); i++){
                 new_iterable += iter_str[i];
             }

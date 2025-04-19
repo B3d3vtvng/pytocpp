@@ -8,7 +8,7 @@
             const std::vector<Value>& rvec = other.as<std::vector<Value>>();
             if (lvec.size() != rvec.size()){return false;}
 
-            for (int i = 0; i < lvec.size(), i++){
+            for (int i = 0; i < lvec.size(); i++){
                 if (!(lvec[i] == rvec[i])){return false;}
             }
             return true;
@@ -25,4 +25,6 @@
         if (value.index() == other.value.index()){
             return value == other.value;
         }
+
+        return false;
     }
