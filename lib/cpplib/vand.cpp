@@ -1,7 +1,7 @@
     static Value vand(const Value& val_1, const Value& val_2, const int line, const char* func){
         if (!val_1.is<bool>() || !val_2.is<bool>()){
             RunTime instance;
-            instance.throw_rt_error("Logical operations must be of type 'bool', not " + get_dbg_type(val_1.value) + " and/or " + get_dbg_val(val_2.value), line, func);
+            instance.throw_rt_error("Logical operations must be of type 'bool', not " + get_dbg_type(val_1.value) + " and/or " + get_dbg_type(val_2.value), line, func);
             return Value(none{});
         }
 

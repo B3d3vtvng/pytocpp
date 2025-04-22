@@ -9,17 +9,4 @@ def os_run_with_pipe(command):
 
 def os_remove(fname):
     os_run("rm " + fname)
-    return None
-
-def os_listdir(dirname):
-    dircontent = os_run_with_pipe("ls")
-    cur_fname = ""
-    fnames = []
-    for char in dircontent:
-        if char == "\n":
-            fnames = fnames + [cur_fname]
-            cur_fname = ""
-            continue
-        cur_fname = cur_fname + char
-    
-    return fnames
+    return fname

@@ -7,6 +7,7 @@ from src.lexer import Lexer
 from src.parser import Parser
 from src.ast_optimization_pass import ASTOptimizationPass
 from src.code_generator import CodeGenerator
+from typing import Any
 
 import sys
 
@@ -45,7 +46,7 @@ class Compiler():
             return self.flags["-o"]
         
     #wrapper function to handle errors in a clean way :)
-    def run_component(self, component: object, function: callable, error_code, haswarning=False) -> any:
+    def run_component(self, component: object, function: callable, error_code, haswarning=False) -> Any:
         """
         Purpose: Runs a compiler component and checks if errors have occured within and handles them accordingly
 
@@ -69,7 +70,7 @@ class Compiler():
         
         return output
     
-    def handle_logging(self, component: object, component_output: any) -> None:
+    def handle_logging(self, component: object, component_output: Any) -> None:
         if "--import" in self.flags: return None
 
         if component == Lexer:

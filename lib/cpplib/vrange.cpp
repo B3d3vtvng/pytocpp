@@ -1,58 +1,45 @@
-    template<typename... Args>
-    static Value vrange(const int line, const char* func, const Args&... args){
-        const std::vector<Value>& arg_vec = { Value(args)... };
+template<typename... Args>
+static Value vrange(const int line, const char* func, const Args&... args) {
+    std::initializer_list<Value> arg_list = { Value(args)... };
+    size_t argc = arg_list.size();
 
-        long long start;
-        long long stop;
-        long long step;
-
-        if (arg_vec.size() == 0 || arg_vec.size() > 3){
+    long long raw[3] = {0, 0, 1};
+    size_t i = 0;
+    for (const Value& arg : arg_list) {
+        if (!arg.is<long long>()) {
             RunTime instance;
-            instance.throw_rt_error("Invalid argument count for function'range', expected: 1-3", line, func);
+            instance.throw_rt_error("Invalid argument type for function 'range', expected: int, received: " + get_dbg_type(arg.value), line, func);
             return Value(none{});
         }
-
-        for (const Value arg : arg_vec){
-            if (!arg.is<long long>()){
-                RunTime instance;
-                instance.throw_rt_error("Invalid argument type for function'range', expected: int, recieved: " + get_dbg_type(arg.value), line, func);
-                return Value(none{});
-            }
-        }
-
-        if (arg_vec.size() == 1){
-            start = 0;
-            stop = arg_vec[0].as<long long>();
-            step = 1;
-        }
-        else if (arg_vec.size() == 2){
-            start = arg_vec[0].as<long long>();
-            stop = arg_vec[1].as<long long>();
-            step = 1;
-        }
-        else{
-            start = arg_vec[0].as<long long>();
-            stop = arg_vec[1].as<long long>();
-            step = arg_vec[2].as<long long>();
-        }
-
-        std::vector<Value> output_vec = std::vector<Value>();
-
-        if (step > 0){
-            for (long long i = start; i<stop;i+=step){
-                output_vec.push_back(Value(i));
-            }
-        }
-        else if (step < 0){
-            for (long long i = start; i>stop;i+=step){
-                output_vec.push_back(Value(i));
-            }
-        }
-        else{
-            RunTime instance;
-            instance.throw_rt_error("range() arg3 must not be zero", line, func);
-            return Value(none{});
-        }
-
-        return Value(output_vec);
+        raw[i++] = arg.as<long long>();
     }
+
+    long long start = (argc == 1) ? 0 : raw[0];
+    long long stop  = (argc == 1) ? raw[0] : raw[1];
+    long long step  = (argc == 3) ? raw[2] : 1;
+
+    if (step == 0) [[unlikely]]{
+        RunTime instance;
+        instance.throw_rt_error("range() arg3 must not be zero", line, func);
+        return Value(none{});
+    }
+
+    auto abs = [](long long x) __attribute__((always_inline)) {
+        return (x < 0) ? -x : x;
+    };
+
+    size_t estimated_size = (step > 0)
+        ? ((stop > start) ? static_cast<size_t>((stop - start + step - 1) / step) : 0)
+        : ((start > stop) ? static_cast<size_t>((start - stop - step - 1) / -step) : 0);
+
+    std::vector<Value> output_vec;
+    output_vec.reserve(estimated_size);
+
+    for (long long i = start;
+         (step > 0) ? (i < stop) : (i > stop);
+         i += step) {
+        output_vec.emplace_back(i);
+    }
+
+    return Value(std::move(output_vec));
+}
