@@ -1,4 +1,9 @@
-    bool operator==(const Value& other) const{
+    bool equ(const Value& other, const int line, const char* func, const char* invalid_v_name) const{
+        if (is<invalid>() && other.is<invalid>()){
+            Runtime instance;
+            throw_rt_error("RunTime Error: Undefined Variable '" + std::string(invalid_v_name) + "'");
+            return false;
+        }
         if (is<none>() && other.is<none>()){
             return true;
         }

@@ -48,6 +48,7 @@ class Parser():
         self.flags = flags
         self.indentation = None
         self.cur_block_indentation = None
+        self.special_globals = []
         self.ast = AST()
         self.identifier_manager = IdentifierManager(self.ast)
         self.ast_init()
@@ -76,7 +77,7 @@ class Parser():
             return None
         self.ast.base_node.children = self.ast.base_node.children[2:] # Removes temporary nodes for argc and argv from the ast
         
-        return self.ast, self.identifier_manager
+        return self.ast, self.identifier_manager, self.special_globals
     
     #################################General Parsing######################################
     
@@ -238,7 +239,9 @@ class Parser():
         flags["--import"] = None # Adds the "--import" flag, prompting the compiler to return the ast and identifiers after the parsing stage without generating code
 
         import_compiler = Compiler(module_path, flags)
-        import_ast, import_ident_man = import_compiler.compile()
+        import_ast, import_ident_man, special_globals = import_compiler.compile()
+        
+        self.special_globals += special_globals #Adds the special globals from the imported module to the current module
 
         args = (self.ast.base_node.children.pop(0), self.ast.base_node.children.pop(0)) #Saves the commandline arguments of the current module
         self.ast.base_node.children = import_ast.base_node.children + self.ast.base_node.children #Merges the ASTs of the current and the imported module
@@ -393,10 +396,10 @@ class Parser():
             return -1
         iter_var_node = AssignNode(self.identifier_manager.get_relative_identifier(iter_var_name), None)
         self.ast.append_node(iter_var_node)
-        if self.ast.cur_node.iter.name in BUILT_IN_FUNC_NAMES:
+        if isinstance(self.ast.cur_node.iter, FuncCallNode) and self.ast.cur_node.iter.name in BUILT_IN_FUNC_NAMES:
             self.ast.cur_node.children[0].type = ()
         else:
-            self.ast.cur_node.children[0].type = tuple(set(self.get_array_types())) if self.ast.cur_node.iter.type != () else ()
+            self.ast.cur_node.children[0].type = self.get_array_types() if self.ast.cur_node.iter.type != () else ()
         self.identifier_manager.set_identifier(iter_var_name, iter_var_node)
         child_count = self.parse_children(cur_line_indentation, rem_line_tokens)
         self.ast.detraverse_node()
@@ -641,6 +644,12 @@ class Parser():
             elif (self.ast.cur_node.value.__class__.__name__ == "FuncCallNode" and self.ast.cur_node.value.name != "range"):
                 self.ast.cur_node.children_types = self.get_array_types()
             self.ast.cur_node.children_count = len(self.ast.cur_node.children_types)
+        if self.ast.get_parent_node(IfNode, ElseNode, ElifNode) and self.ast.cur_node.first_define:
+            self.ast.cur_node.conditional = True
+            self.special_globals.append(self.ast.cur_node)
+        if self.ast.get_parent_node(ForLoopNode, WhileLoopNode) and self.ast.cur_node.first_define:
+            self.ast.cur_node.loop_define = True
+            self.special_globals.append(self.ast.cur_node)
         self.ast.detraverse_node()
         return 0
     
@@ -998,10 +1007,14 @@ class Parser():
             new_node_id = self.ast.append_node(NumberNode(token.token_v), traversal_type)
             self.ast.traverse_node_by_id(new_node_id, traversal_type)
             self.ast.cur_node.type = token.token_t[3:]
+            self.ast.cur_node.line = token.ln
             self.ast.detraverse_node()
             return (token.token_t[3:],)
         if token.token_t == "TT_bool":
-            self.ast.append_node(BoolNode(token.token_v), traversal_type)
+            new_node_id = self.ast.append_node(BoolNode(token.token_v), traversal_type)
+            self.ast.traverse_node_by_id(new_node_id, traversal_type)
+            self.ast.cur_node.line = token.ln
+            self.ast.detraverse_node()
             return ("bool",)
         if token.token_t == "TT_str":
             self.ast.append_node(StringNode(token.token_v), traversal_type)
@@ -1065,6 +1078,7 @@ class Parser():
         
         Returns a boolean value
         """
+        
         if t1 == None:
             return True
         if len(t1) > len(t2):
@@ -1132,7 +1146,7 @@ class Parser():
             if array_node.children:
                 for child in array_node.children:
                     types.append(child.type)
-        return tuple(types), 
+        return tuple(set(types))
     
     def get_iter_nodes(self) -> list[ASTNode] | tuple[str]:
         """

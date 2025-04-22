@@ -89,6 +89,7 @@ class NumberNode(ASTNode):
         super().__init__()
         self.value = value
         self.type = None
+        self.line = None
         
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -115,6 +116,7 @@ class BoolNode(ASTNode):
         super().__init__()
         self.value = value
         self.type = "bool"
+        self.line = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset
@@ -218,6 +220,8 @@ class AssignNode(ASTNode):
         self.child_count = None
         self.first_define = None
         self.line = line
+        self.conditional = False
+        self.loop_define = False
 
     def __repr__(self) -> str:
         if self.value != None:
@@ -643,7 +647,7 @@ class AST():
             self.cur_node.__setattr__(traversal_type, node)
         return node.id
     
-    def get_parent_node(self, searched_node: ASTNode) -> ASTNode:
+    def get_parent_node(self, *args: ASTNode) -> ASTNode:
         """
         Purpose: Traverses up the whole ast until it finds a node of the specified type and returns that node
 
@@ -656,7 +660,7 @@ class AST():
         """
         old_cur_node = self.cur_node
         while not isinstance(self.cur_node, ASTBaseNode):
-            if isinstance(self.cur_node, searched_node):
+            if isinstance(self.cur_node, tuple(args)):
                 node = self.cur_node
                 self.cur_node = old_cur_node
                 return node

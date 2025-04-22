@@ -1,12 +1,12 @@
 from typing import TextIO
 from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
-from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT, DEFAULT_GLOBS
+from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, TOSTR_INSERT_LINE, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT, DEFAULT_GLOBS
 from src.utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
 from src.identifier_manager import IdentifierContainer
 
 class CodeGenerator():
-    def __init__(self, ast: AST, new_file_n: str, ident_container: IdentifierContainer, file_n: str) -> None:
+    def __init__(self, ast: AST, new_file_n: str, ident_manager: IdentifierContainer, special_globals: list[AssignNode], file_n: str) -> None:
         self.ast = ast
         self.new_file_name = new_file_n
         self.new_file = self.open_new_file(new_file_n)
@@ -16,7 +16,9 @@ class CodeGenerator():
         self.header[7] = self.header[7].replace("%", f"\"{file_n}\"")
         self.module_dict = {element: False for element in HEADER_MODULES}
         self.pure_glob = False
-        self.identifier_container = ident_container
+        self.identifier_manager = ident_manager
+        self.special_globals = special_globals
+        self.invalid_v = None
         self.error = None
 
     def open_new_file(self, new_file_n: str) -> TextIO:
@@ -92,7 +94,7 @@ class CodeGenerator():
     
     def generate_assign(self, target_string: str, indentation: int) -> str:
         if self.ast.cur_node.left_expr.__class__.__name__ == "VarNode":
-            type_annotator_str = "Value " if (self.pure_glob or not self.ast.get_parent_node(FuncDefNode) == -1) and self.ast.cur_node.first_define else ""
+            type_annotator_str = "Value " if ((self.pure_glob or not self.ast.get_parent_node(FuncDefNode) == -1) and self.ast.cur_node.first_define) and not (self.ast.cur_node.loop_define or self.ast.cur_node.conditional) else ""
             output = f'{type_annotator_str}{self.ast.cur_node.name} = %;'
             self.ast.traverse_node("value")
             output = self.generate_node(output, in_expr = True)
@@ -126,6 +128,9 @@ class CodeGenerator():
                 self.include(BUILT_IN_FUNC_TO_MODULE_DICT[name])
             name = PY_TO_CPP_BUILT_IN_FUNC_DICT[name]
             dbg_args = f"{self.ast.cur_node.line}, \"{self.get_function_scope()}\""
+            if name == "RunTime::tostr" and self.invalid_v != None:
+                dbg_args += ", " + self.invalid_v
+                self.invalid_v = None
             if arg_count != 0: dbg_args = ", " + dbg_args
             if name == "RunTime::vprint" or name == "RunTime::vrange":
                 return self.generate_var_arg_func_call(target_string, indentation, name, args, in_expr)
@@ -135,7 +140,10 @@ class CodeGenerator():
             return target_string.replace("%", name + "(" + ', '.join([arg for arg in args]) + dbg_args + ")")
         
     def generate_var_arg_func_call(self, target_string: str, indentation: int, name: str, args: list[str], in_expr) -> str:
-        dbg_args = f"{self.ast.cur_node.line}, \"{self.get_function_scope()}\", " if name == "RunTime::vrange" else ""
+        dbg_args = f"{self.ast.cur_node.line}, \"{self.get_function_scope()}\", "
+        if name == "RunTime::vprint" and self.invalid_v != None:
+            dbg_args += '"' + self.invalid_v + '", '
+            self.invalid_v = None
         if not in_expr:
             return target_string.replace("%", indentation * " " + name + "(" + dbg_args + ', '.join([arg for arg in args]) + ");")
         else:
@@ -167,6 +175,8 @@ class CodeGenerator():
         return target_string.replace("%", "Value(std::vector<Value>{" + ''.join([element + ", " if elements.index(element) != len(elements)-1 else element for element in elements]) + "})")
     
     def generate_var(self, target_string: str, indentation: int, **kw_args) -> str:
+        if self.identifier_manager.get_identifier_node(self.ast.cur_node.name).conditional:
+            self.invalid_v = self.ast.cur_node.name
         return target_string.replace("%", self.ast.cur_node.name)
     
     def generate_array_var(self, target_string: str, indentation: int, **kw_args) -> str:
@@ -195,6 +205,8 @@ class CodeGenerator():
         
         self.include("vindex")
         idx_expr = self.generate_idx_expr()
+        if self.identifier_manager.get_identifier_node(self.ast.cur_node.name).conditional:
+            self.invalid_v = self.ast.cur_node.name
         self.ast.detraverse_node()
         return target_string.replace("%", f"RunTime::vindex({self.ast.cur_node.name}, std::vector<Value>{{{idx_expr}}}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
 
@@ -238,11 +250,15 @@ class CodeGenerator():
         self.ast.detraverse_node()
         self.ast.traverse_node("right")
         right = self.generate_node(in_expr = True)
-        self.ast.detraverse_node() 
-
+        self.ast.detraverse_node()
+        
+        if self.ast.op == "!=" or self.ast.op == "==":
+            invalid_v_args = ", " + self.invalid_v if self.invalid_v != None else ""
+        else:
+            invalid_v_args = ""
         
         if self.ast.cur_node.op in ["and", "or", "!=", "=="]:
-            output = f"RunTime::{LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]}({left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")"
+            output = f"RunTime::{LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]}({left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\" + \"{invalid_v_args}\")"
         else:
             output = f"RunTime::vcompare({left}, {right}, {LOGICAL_EXPR_FUNC_NAMES_DICT[self.ast.cur_node.op]}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")"
 
@@ -339,8 +355,16 @@ class CodeGenerator():
         include_insert_line = INCLUDE_INSERT_LINE
         value_insert_line = VALUE_INSERT_LINE
         runtime_insert_line = RUNTIME_INSERT_LINE
+        tostr_insert_line = TOSTR_INSERT_LINE
         included_modules = [module for module in self.module_dict.keys() if self.module_dict[module]]
         public_incl = False
+        if "v_tostr" in included_modules:
+            with open("lib/cpplib/v_tostr.cpp", "r") as module:
+                content = module.readlines()
+            for line in content:
+                self.header.insert(tostr_insert_line, line)
+                tostr_insert_line += 1
+            included_modules.remove("v_tostr")
         for included_module in included_modules:
             if included_module in BUILT_IN_FUNC_TO_LIB_DICT.keys() and BUILT_IN_FUNC_TO_LIB_DICT[included_module] not in included_libs:
                 included_libs.append(BUILT_IN_FUNC_TO_LIB_DICT[included_module])
@@ -351,11 +375,6 @@ class CodeGenerator():
                 self.include_lib(include_insert_line, included_module)
             target = "value" if included_module[:2] == "v_" else "runtime"
             cur_insert_line = value_insert_line if target == "value" else runtime_insert_line
-            if target == "runtime" and not public_incl:
-                self.header.insert(runtime_insert_line, "public:\n")
-                runtime_insert_line += 1
-                cur_insert_line += 1
-                public_incl = True
             with open(f"lib/cpplib/{included_module}.cpp", "r") as module:
                 content = module.readlines()
             inserted_line_count = 0
@@ -386,9 +405,8 @@ class CodeGenerator():
 
         if not has_func: 
             self.pure_glob = True
-            return ""
 
-        assign_nodes = [node for node in self.ast.base_node.children if node.__class__ == AssignNode]
+        assign_nodes = [node for node in self.ast.base_node.children if node.__class__ == AssignNode] + self.special_globals if not self.pure_glob else self.special_globals
         glob_str = ''.join(list(set([f"Value {node.name};\n" for node in assign_nodes])))
 
         return glob_str
@@ -399,7 +417,7 @@ class CodeGenerator():
             return "__main__"
         
         function_scope = function_scope.name
-        return self.identifier_container.get_invalid_identifier(function_scope)
+        return self.identifier_manager.get_invalid_identifier(function_scope)
         
 
 

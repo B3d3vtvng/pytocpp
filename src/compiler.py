@@ -101,15 +101,15 @@ class Compiler():
         self.handle_logging(Lexer, tokens)
 
         parser = Parser(tokens, self.file_n, self.flags)
-        ast, identifier_manager = self.run_component(parser, parser.make_ast, 3, haswarning=True)
+        ast, identifier_manager, special_globals = self.run_component(parser, parser.make_ast, 3, haswarning=True)
         if "--import" in self.flags:
-            return ast, identifier_manager
+            return ast, identifier_manager, special_globals
         
         ast_optimizer = ASTOptimizationPass(ast, identifier_manager)
         ast = self.run_component(ast_optimizer, ast_optimizer.optimize_ast, 4)
         self.handle_logging(Parser, ast)
 
-        code_generator = CodeGenerator(ast, self.new_file_n, identifier_manager.global_identifier_container, self.file_n)
+        code_generator = CodeGenerator(ast, self.new_file_n, identifier_manager, special_globals, self.file_n)
         new_file_n = self.run_component(code_generator, code_generator.generate_code, 5)
 
         if "--no-out" not in self.flags.keys():

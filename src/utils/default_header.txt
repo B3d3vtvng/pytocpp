@@ -10,7 +10,8 @@
 class Value;
 
 using none = std::monostate;
-using value_t = std::variant<long long, long double, bool, std::string, std::vector<Value>, none>;
+using invalid = nullptr_t;
+using value_t = std::variant<long long, long double, bool, std::string, std::vector<Value>, none, invalid>;
 
 enum Compare {
     GREATER,
@@ -25,11 +26,9 @@ class Value {
 public:
     value_t value;
 
-    Value (){ value = none{};}
+    Value() noexcept : value(nullptr) {}
 
-    Value(value_t new_value) {
-        value = new_value;
-    }
+    Value(value_t new_value) noexcept : value(std::move(new_value)) {}
 
     template <typename T>
     T& as() {
@@ -45,6 +44,8 @@ public:
     bool is() const {
         return std::holds_alternative<T>(value);
     }
+
+    std::string tostr(const int line, const char* func, const char* invalid_v_name) const;
 };
 
 class RunTime {
@@ -54,6 +55,7 @@ private:
         return types[val.index()];
     }
 
+public:
     void throw_rt_error(const std::string& error_msg, const int line, const char* func) const {
         std::cout << "\n"
                   << __fname__ << ":" << line << " in " << func << "(): " << "RuntimeError: " << error_msg
