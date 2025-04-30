@@ -46,11 +46,9 @@ HEADER_MODULES = [
 
 INCLUDE_INSERT_LINE = 5
 
-VALUE_INSERT_LINE = 48
+VALUE_INSERT_LINE = 49
 
 RUNTIME_INSERT_LINE = 65
-
-TOSTR_INSERT_LINE = 70
 
 OPERATOR_TO_MODULE_DICT = {
     "!=": "vnequ",
@@ -106,7 +104,8 @@ INVALID_VAR_NAMES = [
     "const",
     "auto",
     "consteval",
-    "__FILE__"
+    "__FILE__",
+    "__fname__"
 ]
 
 INVALID_FUNC_NAMES = [
@@ -125,7 +124,8 @@ BUILT_IN_FUNC_TO_LIB_DICT = {
     "os_run": ("cstdlib",),
     "sleep": ("chrono", "thread"),
     "time": ("chrono",),
-    "time_str": ("chrono", "sstream", "iomanip")
+    "time_str": ("chrono", "sstream", "iomanip"),
+    "validate_conditional": ("array",),
 }
 
 STDLIB_TO_MODULE_PATH_DICT = {

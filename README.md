@@ -38,7 +38,7 @@ I am not planning on implementing OOP features.
 
 ## Limitations
 
-The limitations of this projects are mostly set by the time in would require to implement them. Beforehand, I have decided not to implement OOP features as I think it would be a pain in the butt, and because I only have limited time, there can only be so many built-in functions. Another limitation would be custom runtime errors in the compiled executable which are neccessary to enforce full type safety.
+The limitations of this projects are mostly set by the time that it would require to implement features. Beforehand, I have decided not to implement OOP features as I think it would be a pain in the butt, and because I only have limited time, there can only be so many built-in functions. Another limitation would be custom runtime errors in the compiled executable which are neccessary to enforce full type safety.
 
 Please let me know if you notice any other limitations.
 

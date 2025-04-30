@@ -23,3 +23,8 @@ log.txt
 
 #Ignore benchmark script
 benchmark.sh
+
+#Ignore all other stuff
+topdf/
+topdf.py
+myenv/

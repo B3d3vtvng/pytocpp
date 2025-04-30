@@ -8,9 +8,12 @@
 #define __fname__ %
 
 class Value;
+struct invalid {
+    bool operator==(const invalid&) const {return true;}
+};
 
 using none = std::monostate;
-using invalid = nullptr_t;
+using invalid = struct invalid;
 using value_t = std::variant<long long, long double, bool, std::string, std::vector<Value>, none, invalid>;
 
 enum Compare {
@@ -26,7 +29,7 @@ class Value {
 public:
     value_t value;
 
-    Value() noexcept : value(nullptr) {}
+    Value() noexcept : value(invalid{}) {}
 
     Value(value_t new_value) noexcept : value(std::move(new_value)) {}
 
@@ -44,8 +47,6 @@ public:
     bool is() const {
         return std::holds_alternative<T>(value);
     }
-
-    std::string tostr(const int line, const char* func, const char* invalid_v_name) const;
 };
 
 class RunTime {
@@ -55,7 +56,6 @@ private:
         return types[val.index()];
     }
 
-public:
     void throw_rt_error(const std::string& error_msg, const int line, const char* func) const {
         std::cout << "\n"
                   << __fname__ << ":" << line << " in " << func << "(): " << "RuntimeError: " << error_msg

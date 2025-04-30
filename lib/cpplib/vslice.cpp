@@ -33,7 +33,7 @@
             long long slice_left_l = slice_left.as<long long>();
             long long slice_right_l = slice_right.as<long long>();
 
-            if (slice_left_l < 0 || slice_left_l > str_len-1 || slice_right_l < 0 || slice_right_l > str_len-1){
+            if (slice_left_l < 0 || slice_left_l > str_len || slice_right_l < 0 || slice_right_l > str_len){
                 RunTime instance;
                 instance.throw_rt_error("Slice index out of bounds", line, func);
                 return Value(none{});

@@ -449,8 +449,10 @@ class Parser():
                 return -1
         line = line[1:len(line)-2]
         if not isinstance(self.ast.cur_node, ElseNode):
+            line = self.merge_equ(line)
             if self.parse_expression(line, "condition", cur_ln_num, expr_4=False) == -1: return -1
         child_count = self.parse_children(cur_line_indentation, rem_line_tokens)
+        self.ast.cur_node.line = cur_ln_num
         self.ast.detraverse_node()
         return child_count
 
@@ -490,7 +492,7 @@ class Parser():
             return -1
         self.ast.cur_node = cur_node
         for node in prev_cond_nodes:
-            self.ast.append_node(node, "prev_conditions")
+            self.ast.cur_node.prev_conditions.append(node)
         return 0
 
     def parse_func_call(self, line: list[Token], traversal_type: str="children", from_expr: bool = False) -> int:
@@ -644,12 +646,14 @@ class Parser():
             elif (self.ast.cur_node.value.__class__.__name__ == "FuncCallNode" and self.ast.cur_node.value.name != "range"):
                 self.ast.cur_node.children_types = self.get_array_types()
             self.ast.cur_node.children_count = len(self.ast.cur_node.children_types)
-        if self.ast.get_parent_node(IfNode, ElseNode, ElifNode) and self.ast.cur_node.first_define:
+        if self.ast.get_parent_node(IfNode, ElseNode, ElifNode) != -1 and self.ast.cur_node.first_define:
             self.ast.cur_node.conditional = True
-            self.special_globals.append(self.ast.cur_node)
-        if self.ast.get_parent_node(ForLoopNode, WhileLoopNode) and self.ast.cur_node.first_define:
+            if self.ast.cur_node not in self.special_globals:
+                self.special_globals.append(self.ast.cur_node)
+        if self.ast.get_parent_node(ForLoopNode, WhileLoopNode) != -1 and self.ast.cur_node.first_define:
             self.ast.cur_node.loop_define = True
-            self.special_globals.append(self.ast.cur_node)
+            if self.ast.cur_node not in self.special_globals:
+                self.special_globals.append(self.ast.cur_node)
         self.ast.detraverse_node()
         return 0
     
@@ -688,7 +692,7 @@ class Parser():
         for i, token in enumerate(tokens):
             if i == 0 or i == len(tokens)-1:
                 continue
-            if cur_expr_map[8] and token.token_t in ("TT_equ", "TT_less", "TT_greater", "TT_and", "TT_or", "TT_dequ", "TT_gequ", "TT_lequ") or (token.token_t in ("TT_equ", "TT_less", "TT_greater") and tokens[i+1] == "TT_equ"):
+            if cur_expr_map[8] and token.token_t in ("TT_equ", "TT_less", "TT_greater", "TT_and", "TT_or", "TT_dequ", "TT_gequ", "TT_lequ", "TT_nequ") or (token.token_t in ("TT_equ", "TT_less", "TT_greater") and tokens[i+1] == "TT_equ"):
                 return self.parse_conditional_expression(tokens, traversal_type)
             if cur_expr_map[7] and token.token_t in ("TT_sub", "TT_plus", "TT_mul", "TT_div", "TT_mod") and not [token for token in tokens if token.token_t in ("TT_equ", "TT_greater", "TT_less")]:
                 return self.parse_binop_expression(tokens, traversal_type)
@@ -1054,6 +1058,8 @@ class Parser():
         if operator in ("==", "!="):
             return ("bool",)
         if left_expr_type == right_expr_type:
+            if not self.check_type_exceptions(left_expr_type, right_expr_type, operator, ln_num):
+                return -1
             return left_expr_type if isinstance(left_expr_type, tuple) else (left_expr_type,)
         if len(left_expr_type) == len(right_expr_type) and len(left_expr_type) == 1:
             expr_type = (left_expr_type[0], right_expr_type[0])
@@ -1061,6 +1067,12 @@ class Parser():
                 if operator == "*": return ("str",)
                 self.error = TypeError("Invalid combination of types 'int', 'str'", ln_num, self.file_n)
                 return -1
+            if self.is_valid_type(expr_type, ("int", "list")):
+                if operator == "*": return ("list",)
+                self.error = TypeError("Invalid combination of types 'int', 'list'", ln_num, self.file_n)
+                return -1
+            if self.is_valid_type(expr_type, ("list", "str")) and operator == "*":
+                return ("list",)
             if self.is_valid_type(expr_type, ("float", "int")): 
                 return ("float",)
             self.error = TypeError(f"Invalid combination of types: '{expr_type[0]}', '{expr_type[1]}'", ln_num, self.file_n)
@@ -1071,6 +1083,13 @@ class Parser():
             if combination_type == -1: return -1
             types += list(combination_type)
         return tuple(set(types))
+    
+    def check_type_exceptions(self, left_expr_type: tuple[str], right_expr_type: tuple[str], operator: str, line: int) -> bool:
+        if operator == "*" and self.is_valid_type(left_expr_type, ("list", "str")) and left_expr_type != () and right_expr_type != ():
+            self.error = TypeError(f"Invalid combination of types: '{left_expr_type[0]}', '{right_expr_type[0]}'", line, self.file_n)
+            return False
+        return True
+                
 
     def is_valid_type(self, t1: tuple[str], t2: tuple[str]) -> bool:
         """
@@ -1125,6 +1144,8 @@ class Parser():
                 bracket_depth += 1
             if token.token_t == "TT_rbracket":
                 if bracket_depth == 0: return False
+                bracket_depth -= 1
+                if bracket_depth == 0 and tokens.index(token) == len(tokens) -1: return True
             if bracket_depth == 0 and token.token_t != "TT_lbracket": return False
 
         return True

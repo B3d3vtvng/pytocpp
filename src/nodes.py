@@ -480,6 +480,7 @@ class IfNode(ASTNode):
         super().__init__()
         self.condition = None
         self.children = []
+        self.line = None
 
     def __repr__(self) -> str:
         repr_res = WhileLoopNode.__repr__(self)
@@ -499,6 +500,7 @@ class ElifNode(ASTNode):
         self.condition = None
         self.prev_conditions = []
         self.children = []
+        self.line = None
 
     def __repr__(self) -> str:
         if self.condition:
@@ -526,6 +528,7 @@ class ElseNode(ASTNode):
         self.condition = None
         self.prev_conditions = []
         self.children = []
+        self.line = None
         
     def __repr__(self) -> str:
         self_repr = ElifNode.__repr__(self)

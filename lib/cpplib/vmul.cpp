@@ -31,6 +31,22 @@
             }
             return Value(raw_res);
         }
+        else if (val_1.is<long long>() && val_2.is<std::vector<Value>>()){
+            const std::vector<Value>& val_2_vec = val_2.as<std::vector<Value>>();
+            std::vector<Value> raw_res;
+            for (long long i = 0;i<val_1.as<long long>();i++){
+                raw_res.insert(raw_res.end(), val_2_vec.begin(), val_2_vec.end());
+            }
+            return Value(raw_res);
+        }
+        else if (val_1.is<std::vector<Value>>() && val_2.is<long long>()){
+            const std::vector<Value>& val_1_vec = val_1.as<std::vector<Value>>();
+            std::vector<Value> raw_res;
+            for (long long i = 0;i<val_2.as<long long>();i++){
+                raw_res.insert(raw_res.end(), val_1_vec.begin(), val_1_vec.end());
+            }
+            return Value(raw_res);
+        }
         else {
             RunTime instance;
             instance.throw_rt_error("Invalid type for operation: 'mul': " + get_dbg_type(val_1.value) + " * " + get_dbg_type(val_2.value), line, func);
