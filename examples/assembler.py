@@ -1,3 +1,5 @@
+#Not complete yet :)
+
 TOKENS = ["inc", "dec", "jmp", "tst", "hlt"]
 
 def is_token(str):
