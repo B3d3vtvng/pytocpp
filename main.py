@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from src.cmdl_handler import CommandlineHandler
 from src.compiler import Compiler
 
@@ -24,7 +26,7 @@ def compile():
         if "-v" in flags.keys():
             raise e
         else:
-            exit(1)
+            return 1
     except Exception as e:
         if "-v" in flags.keys():
             raise e

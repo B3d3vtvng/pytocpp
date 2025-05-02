@@ -1,5 +1,4 @@
 from src.nodes import *
-from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES
 
 class ASTOptimizationPass():
     def __init__(self, ast: AST, identifier_manager) -> None:

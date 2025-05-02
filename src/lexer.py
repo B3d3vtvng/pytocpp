@@ -393,6 +393,9 @@ class Lexer():
         Returns the new float token
         """
         float_val_left, float_val_right = non_token.split(".")
+        if float_val_left == "" or float_val_right == "" or not float_val_left.isdigit() or not float_val_right.isdigit():
+            self.error = SyntaxError(f"Invalid Token: '{non_token}'", ln_num, self.file_n)
+            return None
         float_val = int(float_val_left)
         if float_val >= 9223372036854775807:
             self.error = SizeError("Number exceeds the supported integer limit of 9,223,372,036,854,775,807", ln_num, self.file_n)

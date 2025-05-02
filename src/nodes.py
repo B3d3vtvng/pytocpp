@@ -161,6 +161,7 @@ class VarNode(ASTNode):
         super().__init__()
         self.name = name
         self.type = None
+        self.line = None
 
     def __repr__(self) -> str:
         tab_offset = "    " * self.repr_offset

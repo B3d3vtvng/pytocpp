@@ -5,12 +5,12 @@ Parser for the pytoc Python transpiler.
 from copy import deepcopy
 
 from src.utils.error import *
-from src.utils.header import INVALID_VAR_NAMES, INVALID_FUNC_NAMES, STDLIB_TO_MODULE_PATH_DICT
+from src.utils.header import STDLIB_TO_MODULE_PATH_DICT
 from src.utils.operators import BINOP_OPERATOR_PRECEDENCE_DICT, CONDITION_OPERATOR_PRECEDENCE_DICT, SLICE_OPERATOR_PRECEDENCE_DICT, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT, EXPR_MAP, OPERATORS, UNOP_OPERATOR_DICT
 from src.utils.tokens import Token
 from src.utils.list_util_funcs import get_sublists, get_combinations
 from src.utils.allowed_type_constants import *
-from src.utils.built_in_funcs import BUILT_IN_FUNC_DICT, BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
+from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES, VAR_ARG_BUILT_IN_FUNCS
 from src.identifier_manager import IdentifierManager, IdentifierContainer
 from src.nodes import *
 from src.lexer import get_token_ident
@@ -332,7 +332,9 @@ class Parser():
         self.ast.cur_node.identifier_container = IdentifierContainer()
         self.ast.cur_node.arg_names = args
         self.ast.cur_node.indentation = cur_line_indentation
-        children_count, self.ast.cur_node.unparsed_children = self.get_children(rem_line_tokens, cur_line_indentation)
+        children = self.get_children(rem_line_tokens, cur_line_indentation)
+        if children == -1: return -1
+        children_count, self.ast.cur_node.unparsed_children = children
         if "--import" in self.flags.keys():
             self.parse_no_discard_func_def()
         self.ast.detraverse_node()
@@ -1038,6 +1040,7 @@ class Parser():
             self.ast.traverse_node_by_id(new_node_id, traversal_type)
             cur_node_type = self.identifier_manager.get_identifier_node(name).type
             self.ast.cur_node.type = cur_node_type
+            self.ast.cur_node.line = token.ln
             self.ast.detraverse_node()
             return cur_node_type
             
@@ -1198,19 +1201,12 @@ class Parser():
             self.ast.cur_node = self.identifier_manager.get_identifier_node(self.ast.cur_node.name)
             return self.get_iter_nodes()
         if isinstance(self.ast.cur_node, BinOpNode):
-            nodes = []
             cur_node = self.ast.cur_node
-            self.ast.traverse_node("left")
+            self.ast.traverse_node("right")
             right_types = self.get_iter_nodes()
             if right_types == -1: return -1
-            nodes += right_types
             self.ast.cur_node = cur_node
-            self.ast.traverse_node("right")
-            left_types = self.get_iter_nodes()
-            if left_types == -1: return -1
-            nodes += left_types
-            self.ast.cur_node = cur_node
-            return nodes
+            return right_types
         if isinstance(self.ast.cur_node, FuncCallNode):
             if self.ast.cur_node.name == "range": return ()
             self.ast.cur_node = self.identifier_manager.get_identifier_node(self.ast.cur_node.name)

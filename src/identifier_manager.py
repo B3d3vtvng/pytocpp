@@ -1,5 +1,5 @@
 from __future__ import annotations
-from src.utils.header import INVALID_FUNC_NAMES, INVALID_VAR_NAMES
+from src.utils.header import INVALID_IDENTIFIERS
 from src.nodes import ASTNode, FuncDefNode, AST
 from src.utils.built_in_funcs import BUILT_IN_FUNC_DICT
 from copy import deepcopy
@@ -76,7 +76,7 @@ class IdentifierContainer():
         return self.identifier_dict[identifier]
     
     def generate_relative_identifier(self, identifier: str) -> str:
-        if identifier in INVALID_VAR_NAMES or identifier in INVALID_FUNC_NAMES:
+        if identifier in INVALID_IDENTIFIERS:
             new_identifier = "_" + identifier
             while new_identifier in self.identifier_dict:
                 new_identifier = "_" + identifier
@@ -87,7 +87,7 @@ class IdentifierContainer():
         return identifier
     
     def set_identifier(self, identifier: str, value: ASTNode, is_func=False) -> None:
-        if identifier in INVALID_VAR_NAMES or (is_func and identifier in INVALID_FUNC_NAMES):
+        if identifier in INVALID_IDENTIFIERS:
             relative_identifier = self.generate_relative_identifier(identifier)
             self.invalid_identifier_dict[identifier] = relative_identifier
             identifier = relative_identifier

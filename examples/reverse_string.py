@@ -1,4 +1,4 @@
-# Compile from outer directory with command "python3 main.py examples/fib.py" and then compile the produced c++ file using std version 17++
+# Compile from outer directory with command "python3 main.py examples/reverse_string.py" and then compile the produced c++ file using std version 17++
 
 def reverse_string(string):
     if string == "":
@@ -10,3 +10,5 @@ def reverse_string(string):
         new_string = _char + new_string
     
     return new_string
+
+print(reverse_string("Hello from c++!"))

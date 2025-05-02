@@ -1,4 +1,4 @@
-with open("src/utils/default_header.txt") as file:
+with open("lib/cpplib/default_header.cpp") as file:
     DEFAULT_HEADER = file.readlines()
 
 DEFAULT_GLOBS = "Value argc;\nValue argv;\n"
@@ -89,28 +89,10 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
     "time_str": "time_str"
 }
 
-INVALID_VAR_NAMES = [
-    "__argc",
-    "__argv",
-    "__restrict__",
-    "int",
-    "long",
-    "unsigned",
-    "signed",
-    "char",
-    "float",
-    "double",
-    "constexpr", 
-    "const",
-    "auto",
-    "consteval",
-    "__FILE__",
-    "__fname__"
-]
-
-INVALID_FUNC_NAMES = [
-    "main"
-]
+#Invalid identifiers taken from the shedskin project (https://github.com/shedskin/shedskin/blob/master/shedskin/resources/illegal/illegal.txt)
+with open("src/utils/invalid.txt", "r") as invalids:
+    INVALID_IDENTIFIERS = invalids.readlines()
+    
 
 BUILT_IN_FUNC_TO_LIB_DICT = {
     "v_tostr": ("sstream",),

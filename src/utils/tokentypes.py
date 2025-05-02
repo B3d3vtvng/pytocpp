@@ -60,10 +60,9 @@ KEYWORDS = [
     "FOR", 
     "IN",
     "AND",
-    "OR"
+    "OR",
+    "BREAK",
+    "CONTINUE",
+    "PASS",
+    "IMPORT",
 ]
-
-TOKEN_ALIAS_TO_TOKEN_DICT = {
-    "&&": "and",
-    "||": "or"
-}

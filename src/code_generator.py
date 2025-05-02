@@ -1,6 +1,6 @@
 from typing import TextIO
 from src.utils.built_in_funcs import BUILT_IN_FUNC_NAMES, PY_TO_CPP_BUILT_IN_FUNC_DICT
-from src.utils.header import DEFAULT_HEADER, HEADER_MODULES, RUNTIME_INSERT_LINE, VALUE_INSERT_LINE, INCLUDE_INSERT_LINE, OPERATOR_TO_MODULE_DICT, BUILT_IN_FUNC_TO_MODULE_DICT, MAIN_WRAPPER, BUILT_IN_FUNC_TO_LIB_DICT, DEFAULT_GLOBS
+from src.utils.header import *
 from src.utils.operators import BINOP_FUNC_NAMES_DICT, UNOP_FUNC_NAMES_DICT, LOGICAL_EXPR_FUNC_NAMES_DICT
 from src.nodes import *
 from src.identifier_manager import IdentifierContainer
@@ -18,7 +18,7 @@ class CodeGenerator():
         self.pure_glob = False
         self.identifier_manager = ident_manager
         self.special_globals = special_globals
-        self.invalid_vs = []
+        self.conditionals = {}
         self.error = None
 
     def open_new_file(self, new_file_n: str) -> TextIO:
@@ -95,7 +95,7 @@ class CodeGenerator():
     
     def generate_assign(self, target_string: str, indentation: int) -> str:
         if self.ast.cur_node.conditional:
-            self.invalid_vs.append(self.ast.cur_node.name)
+            self.conditionals[self.ast.cur_node.name] = self.get_function_scope()
         if self.ast.cur_node.left_expr.__class__.__name__ == "VarNode":
             type_annotator_str = "Value " if (self.pure_glob or not self.ast.get_parent_node(FuncDefNode) == -1) and self.ast.cur_node.first_define and not (self.ast.cur_node.loop_define or self.ast.cur_node.conditional) else ""
             output = f'{type_annotator_str}{self.ast.cur_node.name} = %;'
@@ -172,9 +172,28 @@ class CodeGenerator():
         return target_string.replace("%", "Value(std::vector<Value>{" + ''.join([element + ", " if elements.index(element) != len(elements)-1 else element for element in elements]) + "})")
     
     def generate_var(self, target_string: str, indentation: int, **kw_args) -> str:
+        if self.needs_validation():
+            conditional_check = f"RunTime::validate_conditional({self.ast.cur_node.line}, \"{self.get_function_scope()}\", \"{self.ast.cur_node.name}\", {self.ast.cur_node.name})"
+            self.conditionals.pop(self.ast.cur_node.name)
+            self.include("validate_conditional")
+            return target_string.replace("%", conditional_check)
         return target_string.replace("%", self.ast.cur_node.name)
     
+    def needs_validation(self) -> bool:
+        if self.ast.cur_node.name not in self.conditionals.keys(): return False
+        if self.conditionals[self.ast.cur_node.name] != self.get_function_scope(): return False
+        parent_conditional_node = self.ast.get_parent_node(IfNode, ElifNode, ElseNode)
+        if parent_conditional_node == -1: return True
+        if parent_conditional_node.id in self.get_condition_ids(parent_conditional_node): return False
+        return True
+    
     def generate_array_var(self, target_string: str, indentation: int, **kw_args) -> str:
+        if self.needs_validation():
+            identifier_expr = f"RunTime::validate_conditional({self.ast.cur_node.line}, \"{self.get_function_scope()}\", \"{self.ast.cur_node.name}\", {self.ast.cur_node.name})"
+            self.conditionals.pop(self.ast.cur_node.name)
+            self.include("validate_conditional")
+        else:
+            identifier_expr = self.ast.cur_node.name
         self.ast.traverse_node("content")
         if self.ast.cur_node.__class__.__name__ == "SliceExpressionNode":
             self.include("vslice")
@@ -196,12 +215,12 @@ class CodeGenerator():
             self.ast.detraverse_node()
             self.ast.detraverse_node()
 
-            return target_string.replace("%", f"RunTime::vslice({self.ast.cur_node.name}, {left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
+            return target_string.replace("%", f"RunTime::vslice({identifier_expr}, {left}, {right}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
         
         self.include("vindex")
         idx_expr = self.generate_idx_expr()
         self.ast.detraverse_node()
-        return target_string.replace("%", f"RunTime::vindex({self.ast.cur_node.name}, std::vector<Value>{{{idx_expr}}}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
+        return target_string.replace("%", f"RunTime::vindex({identifier_expr}, std::vector<Value>{{{idx_expr}}}, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")")
 
     def generate_idx_expr(self) -> str:
         idx_expr = ""
@@ -261,8 +280,6 @@ class CodeGenerator():
             condition = self.generate_node(f"RunTime::vcondition(%, {self.ast.cur_node.line}, \"{self.get_function_scope()}\")", in_expr = True)
             self.include("vcondition")
             self.ast.detraverse_node()
-        else:
-            invalid_v_check = ""
         if self.ast.cur_node.__class__.__name__ == "IfNode":
             output = f"if ({condition}){{\n%}}"
         elif self.ast.cur_node.__class__.__name__ == "ElifNode":
@@ -271,44 +288,24 @@ class CodeGenerator():
             output = f"else{{\n%}}"
         body = self.generate_body(indentation)
         
-        if self.invalid_vs != [] and self.last_condition():
-            invalid_v_check = f"RunTime::validate_conditional({self.ast.cur_node.line}, \"{self.get_function_scope()}\", %);"
-            invalid_v_check = self.generate_invalid_v_check(invalid_v_check)
-            self.invalid_vs = []
-            self.include("validate_conditional")
-        else:
-            invalid_v_check = ""
-        
         output = indentation * " " + output.replace("%", body)
         output = output[:len(output)-1] + indentation * " " + "}"
-        if invalid_v_check != "":
-            output = output + "\n" + indentation * " " + invalid_v_check
         return target_string.replace("%", output)
     
-    def last_condition(self) -> bool:
-        last_condition = False
-        if self.ast.next_child_node() == -1:
-            return True
-        if self.ast.cur_node.__class__.__name__ not in ["IfNode", "ElifNode", "ElseNode"]:
-            last_condition = True
+    def get_condition_ids(self, node) -> list[int]:
+        old_cur_node = self.ast.cur_node
+        self.ast.cur_node = node
+        condition_ids = []
+        if not isinstance(node, IfNode):
+            condition_ids += [prev_condition.id for prev_condition in self.ast.cur_node.prev_conditions]
         
-        self.ast.prev_child_node()
-        return last_condition
-    
-    def generate_invalid_v_check(self, target_string: str) -> str:
-        invalid_v_check_names = ""
-        invalid_v_check_varnames = ""
-        
-        for i in range(len(self.invalid_vs)):
-            invalid_v_check_names += f"\"{self.invalid_vs[i]}\""
-            invalid_v_check_varnames += f"{self.invalid_vs[i]}"
-            if i != len(self.invalid_vs) - 1:
-                invalid_v_check_names += ", "
-                invalid_v_check_varnames += ", "
-                
-        invalid_v_check = f"std::vector<const char*>({{{invalid_v_check_names}}}), "
-        invalid_v_check += invalid_v_check_varnames
-        return target_string.replace("%", invalid_v_check)
+        while self.ast.next_child_node() != -1:
+            if not isinstance(self.ast.cur_node, (IfNode, ElifNode, ElseNode)):
+                break
+            condition_ids.append(self.ast.cur_node.id)
+            
+        self.ast.cur_node = old_cur_node
+        return condition_ids
     
     def generate_while_loop(self, target_string: str, indentation: int, **kw_args) -> str:
         self.ast.traverse_node("condition")
