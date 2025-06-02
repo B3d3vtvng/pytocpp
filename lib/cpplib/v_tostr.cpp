@@ -24,6 +24,28 @@
             oss << val;
         } else if constexpr (std::is_same_v<T, none>) {
             oss << "None";
+        } else if constexpr (std::is_same_v<T, std::unordered_map<Value, Value>>) {
+            oss << "{";
+            for (auto it = val.begin(); it != val.end(); ++it) {
+                if (it->first.template is<std::string>()) {
+                    oss << "\"" + it->first.tostr() + "\"";
+                } else {
+                    oss << it->first.tostr();
+                }
+                
+                oss << ": ";
+                
+                if (it->second.template is<std::string>()) {
+                    oss << "\"" + it->second.tostr() + "\"";
+                } else {
+                    oss << it->second.tostr();
+                }
+                
+                if (std::next(it) != val.end()) {
+                    oss << ", ";
+                }
+            }
+            oss << "}";
         } else if constexpr (std::is_same_v<T, invalid>){
             //Do nothing to trick the compiler lmao
         } else {

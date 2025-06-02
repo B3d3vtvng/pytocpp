@@ -365,6 +365,26 @@ class CodeGenerator():
     def generate_break(self, target_string: str, indentation: int, **kw_args) -> str:
         return indentation * " " + "break;"
     
+    def generate_dict(self, target_string: str, indentation: int, **kw_args) -> str:
+        elements = []
+        child_len = len(self.ast.cur_node.entries)
+        if child_len != 0:
+            self.ast.traverse_node("entries")
+            for _ in range(child_len):
+                elements.append(self.generate_node(in_expr=True))
+                self.ast.next_child_node("entries")
+            self.ast.detraverse_node()
+        return target_string.replace("%", "Value(std::unordered_map<Value, Value>{{" + ', '.join([element + ", " if elements.index(element) != len(elements)-1 else element for element in elements]) + "}})")
+    
+    def generate_dict_entry(self, target_string: str, indentation: int, **kw_args) -> str:
+        self.ast.traverse_node("key")
+        key = self.generate_node(in_expr=True)
+        self.ast.detraverse_node()
+        self.ast.traverse_node("value")
+        value = self.generate_node(in_expr=True)
+        self.ast.detraverse_node()
+        return target_string.replace("%", f"std::pair<Value, Value>({key}, {value})")
+    
     def include(self, rt_func_name: str) -> None:
         if rt_func_name == "vnequ":
             self.include("vequ")

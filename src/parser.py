@@ -682,10 +682,12 @@ class Parser():
             cur_expr_map[kw_int] = False
         if cur_expr_map[0] and len(tokens) == 1:
             return self.parse_simple_literal_and_var(tokens[0], traversal_type)
-        if cur_expr_map[1] and self.is_array_literal(tokens):
-            return self.parse_array_literal(tokens, traversal_type)
-        if len(tokens) >= 3 and cur_expr_map[3] and self.is_array_var(tokens):
-            return self.parse_array_var(tokens, traversal_type)
+        if cur_expr_map[1]:
+            is_special_lit = self.is_special_literal(tokens)
+            if is_special_lit[0]:
+                return self.parse_special_literal(tokens, traversal_type, is_special_lit[1], is_special_lit[2])
+        if len(tokens) >= 3 and cur_expr_map[3] and self.is_indexing_expr(tokens):
+            return self.parse_indexing_expr(tokens, traversal_type)
         if len(tokens) >= 3 and cur_expr_map[5] and tokens[0].token_t == "TT_identifier" and tokens[1].token_t == "TT_lparen" and tokens[len(tokens)-1].token_t == "TT_rparen" and self.is_func_call(tokens):
             if self.parse_func_call(tokens, traversal_type, from_expr=True) == -1: return -1
             return self.identifier_manager.get_identifier_node(tokens[0].token_v).return_type
@@ -899,7 +901,7 @@ class Parser():
         self.ast.detraverse_node()
         return expr_type
         
-    def parse_array_var(self, tokens: list[Token], traversal_type: str) -> str | int:
+    def parse_indexing_expr(self, tokens: list[Token], traversal_type: str) -> str | int:
         """
         Parses an array indexing expression represented by tokens into its AST Node
 
@@ -962,46 +964,65 @@ class Parser():
         return content_expressions
 
         
-    def parse_array_literal(self, tokens: list[Token], traversal_type: str) -> str | int:
+    def parse_special_literal(self, tokens: list[Token], traversal_type: str, literal_type: str, content_exprs: list[list[Token]]) -> str | int:
         """
         Parses a list literal expression represented by tokens into its AST Node
 
-        Returns -1 on error, otherwise ("list",)
+        Returns -1 on error, otherwise the type of the expression
         """
+        
         tokens = tokens[1:len(tokens)-1]
-        if tokens == []:
-            self.ast.append_node(ArrayNode(), traversal_type)
+        if literal_type == "list":
+            new_node_id = self.ast.append_node(ArrayNode(), traversal_type)
+            self.ast.traverse_node_by_id(new_node_id, traversal_type)
+            for content_expr in content_exprs:
+                if self.parse_expression(content_expr, "content", tokens[0].ln, expr_1=False, expr_3=False) == -1: return -1
+            self.ast.detraverse_node()
             return ("list",)
-        arr_element_expressions = []
-        cur_arr_element_expression = []
-        paren_depth = 0
-        for token in tokens:
-            if token.token_t in ("TT_lparen", "TT_lbracket"):
-                paren_depth += 1
-            if token.token_t in ("TT_rparen", "TT_rbracket"):
-                if paren_depth == 0:
-                    self.error = SyntaxError("Invalid Syntax", tokens[0].token_t, self.file_n)
-                    return -1
-                paren_depth -= 1
-            if token.token_t == "TT_comma" and not paren_depth:
-                if cur_arr_element_expression:
-                    arr_element_expressions.append(cur_arr_element_expression)
-                    cur_arr_element_expression = []
-                    continue
-                else:
-                    self.error = SyntaxError("Invalid Syntax", token.ln, self.file_n)
-                    return -1
-            cur_arr_element_expression.append(token)
-        if not cur_arr_element_expression:
-            self.error = SyntaxError("Invalid Syntax", token.ln, self.file_n)
+        if literal_type == "dict":
+            new_node_id = self.ast.append_node(DictNode(), traversal_type)
+            self.ast.traverse_node_by_id(new_node_id, traversal_type)
+            for content_expr in content_exprs:
+                if self.parse_dict_content(content_expr, tokens[0].ln) == -1: return -1
+            self.ast.detraverse_node()
+            return ("dict",)
+        if literal_type == "tuple":
+            new_node_id = self.ast.append_node(TupleNode(), traversal_type)
+            self.ast.traverse_node_by_id(new_node_id, traversal_type)
+            for content_expr in content_exprs:
+                if self.parse_expression(content_expr, "content", tokens[0].ln, expr_1=False, expr_3=False) == -1: return -1
+            self.ast.detraverse_node()
+            return ("tuple",)
+        
+    def parse_dict_content(self, tokens: list[Token], ln_num: int) -> str | int:
+        """
+        Parses the content of a dictionary literal expression represented by tokens into its AST Node
+
+        Returns -1 on error, otherwise the type of the expression
+        """
+        _, op_idx = self.get_operator_info(tokens, {"TT_colon": 1})
+        if op_idx == -1:
+            self.error = SyntaxError("Invalid Syntax", ln_num, self.file_n)
             return -1
-        arr_element_expressions.append(cur_arr_element_expression)
-        node_id = self.ast.append_node(ArrayNode(), traversal_type)
-        self.ast.traverse_node_by_id(node_id, traversal_type)
-        for arr_element_expression in arr_element_expressions:
-            if self.parse_expression(arr_element_expression, "children", tokens[0].ln, expr_4=False) == -1: return -1
+        
+        key = tokens[:op_idx]
+        value = tokens[op_idx+1:]
+        
+        new_node_id = self.ast.append_node(DictEntryNode(), "entries")
+        self.ast.traverse_node_by_id(new_node_id, "entries")
+        
+        key_type = self.parse_expression(key, "key", ln_num, expr_1=False, expr_3=False, expr_8=False)
+        if key_type == -1: return -1
+        
+        value_type = self.parse_expression(value, "value", ln_num, expr_1=False, expr_3=False, expr_8=False)
+        if value_type == -1: return -1
+        
         self.ast.detraverse_node()
-        return ("list",)
+        
+        return 0
+        
+        
+        
         
     def parse_simple_literal_and_var(self, token: Token, traversal_type: str) -> str | int:
         """
@@ -1112,28 +1133,133 @@ class Parser():
         if t1 not in get_sublists(t2):
             return False
         return True
-
-    def is_array_literal(self, tokens: list[Token]) -> bool:
+    
+    def is_special_literal(self, tokens: list[Token]) -> bool:
         """
-        Checks if a group of tokens represents a list literal expression
-
-        Returns a boolean value
+        Checks if a group of tokens represents a list, dict or tuple literal expression
         """
-        if tokens[0].token_t != "TT_lbracket" or tokens[-1].token_t != "TT_rbracket":
+        
+        if len(tokens) < 3:
             return False
-        bracket_depth = 0
-        for i, token in enumerate(tokens):
-            match token.token_t:
-                case "TT_lbracket":
-                    bracket_depth += 1
-                case "TT_rbracket":
-                    if bracket_depth != 1 or i == len(tokens)-1:
-                        bracket_depth -= 1
-                    else:
-                        return False
-        return True
+        
+        is_list = self.is_special_literal_br_type(tokens, "TT_lbracket", "TT_rbracket")
+        if is_list[0]:
+            return True, "list", is_list[1]
+        is_dict = self.is_special_literal_br_type(tokens, "TT_lbrace", "TT_rbrace")
+        if is_dict[0]:
+            return True, "dict", is_dict[1]
+        is_tup = self.is_tuple_literal(tokens)
+        if is_tup[0]:
+            return True, "tuple", is_tup[1]
+        return False, "", None
+            
+    def is_tuple_literal(self, tokens: list[Token]) -> tuple[bool, list[list[Token]]]:
+        """
+        Checks if a group of tokens represents a tuple literal expression,
+        following Python's tuple literal syntax.
 
-    def is_array_var(self, tokens: list[Token]) -> bool:
+        Returns (is_tuple, content_exprs)
+        """
+        if len(tokens) < 3:
+            return False, []
+        if tokens[0].token_t != "TT_lparen" or tokens[-1].token_t != "TT_rparen":
+            return False, []
+
+        inner_tokens = tokens[1:-1]
+        if not inner_tokens:
+            return False, []
+
+        paren_depth = 0
+        bracket_depth = 0
+        brace_depth = 0
+        has_comma = False
+        content_exprs = []
+        cur_expr = []
+
+        for token in inner_tokens:
+            if token.token_t == "TT_lparen":
+                paren_depth += 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_rparen":
+                paren_depth -= 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_lbracket":
+                bracket_depth += 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_rbracket":
+                bracket_depth -= 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_lbrace":
+                brace_depth += 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_rbrace":
+                brace_depth -= 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_comma" and paren_depth == 0 and bracket_depth == 0 and brace_depth == 0:
+                has_comma = True
+                content_exprs.append(cur_expr)
+                cur_expr = []
+            else:
+                cur_expr.append(token)
+
+        if cur_expr:
+            content_exprs.append(cur_expr)
+
+        # Python: (x,) is a tuple, (x) is not. So require at least one comma at top level.
+        if not has_comma:
+            return False, []
+
+        return True, content_exprs
+
+    def is_special_literal_br_type(self, tokens: list[Token], openbr: str, closebr: str, istup: bool=False) -> tuple[bool, list[list[Token]]]:
+        """
+        Checks if a group of tokens represents a list or dict literal expression.
+
+        Returns (is_literal, content_exprs)
+        """
+        if tokens[0].token_t != openbr or tokens[-1].token_t != closebr:
+            return False, []
+        inner_tokens = tokens[1:-1]
+        if not inner_tokens:
+            return True, []  # Empty list/dict
+
+        bracket_depth = 0
+        paren_depth = 0
+        brace_depth = 0
+        content_exprs = []
+        cur_expr = []
+
+        for token in inner_tokens:
+            if token.token_t == openbr:
+                bracket_depth += 1
+                cur_expr.append(token)
+            elif token.token_t == closebr:
+                bracket_depth -= 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_lparen":
+                paren_depth += 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_rparen":
+                paren_depth -= 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_lbrace":
+                brace_depth += 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_rbrace":
+                brace_depth -= 1
+                cur_expr.append(token)
+            elif token.token_t == "TT_comma" and bracket_depth == 0 and paren_depth == 0 and brace_depth == 0:
+                content_exprs.append(cur_expr)
+                cur_expr = []
+            else:
+                cur_expr.append(token)
+
+        if cur_expr:
+            content_exprs.append(cur_expr)
+
+        return True, content_exprs
+
+    def is_indexing_expr(self, tokens: list[Token]) -> bool:
         """
         Checks if a group of tokens represents an array indexing expression
 
@@ -1395,7 +1521,7 @@ class Parser():
             return False
         operator_idx = self.get_operator_info(line_copy, ASSIGNMENT_OPERATOR_PRECEDENCE_DICT)[1]
         left = line_copy[:operator_idx]
-        return self.is_array_var(left)
+        return self.is_indexing_expr(left)
     
     def handle_op_assign(self, tokens: list[Token], operator: str, operator_idx: int) -> list[Token]:
         match operator.token_t:

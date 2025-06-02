@@ -17,6 +17,8 @@ TOKEN_TYPES = {
     "RPAREN": ("TT_rparen", ")"),
     "LBRACKET": ("TT_lbracket", "["),
     "RBRACKET": ("TT_rbracket", "]"),
+    "LBRACE": ("TT_lbrace", "{"),
+    "RBRACE": ("TT_rbrace", "}"),
     "PLUS": ("TT_plus", "+"),
     "SUB": ("TT_sub", "-"),
     "MUL": ("TT_mul", "*"),

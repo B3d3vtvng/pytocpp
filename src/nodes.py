@@ -187,6 +187,61 @@ class ArrayVarNode(ASTNode):
         tab_offset = "    " * self.repr_offset
         return f"ArrayVarNode[\n{tab_offset}    Name: {self.name}\n{tab_offset}    Content[{idx_str}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
     
+class TupleNode(ASTNode):
+    def __init__(self) -> None:
+        """
+        Node describing tuple literals, children contains the nodes representing the elements of the tuple
+        """
+        super().__init__()
+        self.children = []
+        self.type = "tuple"
+
+    def __repr__(self) -> str:
+        tab_offset = "    " * self.repr_offset
+        child_str = f""
+        for child in self.children:
+            child.repr_offset = self.repr_offset + 2
+            child_str += f"\n{"    " * child.repr_offset}{child}"
+            child_str = child_str
+        
+        return f"TupleNode[\n{tab_offset}    Children[{tab_offset}    {child_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.children)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class DictNode(ASTNode):
+    def __init__(self) -> None:
+        """
+        Node describing dictionary literals, children contains the nodes representing the elements of the dictionary
+        """
+        super().__init__()
+        self.entries = []
+        self.type = "dict"
+        self.keytypes = ()
+        self.valuetypes = ()
+
+    def __repr__(self) -> str:
+        tab_offset = "    " * self.repr_offset
+        entry_str = f""
+        for entry in self.entries:
+            entry.repr_offset = self.repr_offset + 2
+            entry_str += f"\n{"    " * entry.repr_offset}{entry}"
+            entry_str = entry_str
+        
+        return f"DictNode[\n{tab_offset}    Entries[{tab_offset}    {entry_str}\n{tab_offset}    ]\n{tab_offset}    Len: {len(self.entries)}\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
+class DictEntryNode(ASTNode):
+    def __init__(self) -> None:
+        """
+        Node describing a single entry of a dictionary literal
+        """
+        super().__init__()
+        self.key = None
+        self.value = None
+
+    def __repr__(self) -> str:
+        tab_offset = "    " * self.repr_offset
+        self.key.repr_offset = self.repr_offset + 2
+        self.value.repr_offset = self.repr_offset + 2
+        return f"DictEntryNode[\n{tab_offset}    Key[\n{tab_offset}        {self.key}\n{tab_offset}    ]\n{tab_offset}    Value[\n{tab_offset}        {self.value}\n{tab_offset}    ]\n{tab_offset}    Id: {self.id}\n{tab_offset}]"
+    
 class SliceExpressionNode(ASTNode):
     def __init__(self, line: int) -> None:
         """

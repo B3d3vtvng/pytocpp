@@ -18,15 +18,11 @@ static Value vrange(const int line, const char* func, const Args&... args) {
     long long stop  = (argc == 1) ? raw[0] : raw[1];
     long long step  = (argc == 3) ? raw[2] : 1;
 
-    if (step == 0) [[unlikely]]{
+    if (__builtin_expect((step == 0), 0)){
         RunTime instance;
         instance.throw_rt_error("range() arg3 must not be zero", line, func);
         return Value(none{});
     }
-
-    auto abs = [](long long x) __attribute__((always_inline)) {
-        return (x < 0) ? -x : x;
-    };
 
     size_t estimated_size = (step > 0)
         ? ((stop > start) ? static_cast<size_t>((stop - start + step - 1) / step) : 0)

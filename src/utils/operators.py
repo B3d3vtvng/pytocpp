@@ -38,8 +38,8 @@ ASSIGNMENT_OPERATOR_PRECEDENCE_DICT = {
 EXPR_MAP = {
     0: True, #simple_literal
     1: True, #array_literal
-    2: True, #simple_var
-    3: True, #array_var, includes str
+    2: True, #filler lmao
+    3: True, #indexing_expr, includes str, dict and tuple
     4: True, #slice_expr
     5: True, #func_call
     6: True, #un_op_expr
