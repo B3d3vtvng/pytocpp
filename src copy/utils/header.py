@@ -91,10 +91,7 @@ BUILT_IN_FUNC_TO_MODULE_DICT = {
 
 #Invalid identifiers taken from the shedskin project (https://github.com/shedskin/shedskin/blob/master/shedskin/resources/illegal/illegal.txt)
 with open("src/utils/invalid.txt", "r") as invalids:
-    _invalid_identifiers = invalids.readlines()
-    for i in range(len(_invalid_identifiers)):
-        _invalid_identifiers[i] = _invalid_identifiers[i].strip()
-    INVALID_IDENTIFIERS = _invalid_identifiers
+    INVALID_IDENTIFIERS = invalids.readlines()
     
 
 BUILT_IN_FUNC_TO_LIB_DICT = {

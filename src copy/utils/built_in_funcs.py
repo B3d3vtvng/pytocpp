@@ -40,35 +40,35 @@ temp_ast.append_node(FuncDefNode("fread", ["fname"]))
 temp_ast.cur_node.children[9].arg_types = [("str",)]
 temp_ast.cur_node.children[9].return_type = ("str",)
 temp_ast.append_node(FuncDefNode("freadlines", ["fname"]))
-temp_ast.cur_node.children[10].arg_types = [("str",)]
-temp_ast.cur_node.children[10].return_type = ("list",)
+temp_ast.cur_node.children[9].arg_types = [("str",)]
+temp_ast.cur_node.children[9].return_type = ("list",)
 temp_ast.append_node(FuncDefNode("fcreate", ["fname"]))
-temp_ast.cur_node.children[11].arg_types = [("str",)]
-temp_ast.cur_node.children[11].return_type = ("none",)
+temp_ast.cur_node.children[9].arg_types = [("str",)]
+temp_ast.cur_node.children[9].return_type = ("none",)
 temp_ast.append_node(FuncDefNode("fwrite", ["fname", "finput"]))
-temp_ast.cur_node.children[12].arg_types = [("str",), ("str",)]
-temp_ast.cur_node.children[12].return_type = ("none",)
+temp_ast.cur_node.children[10].arg_types = [("str",), ("str",)]
+temp_ast.cur_node.children[10].return_type = ("none",)
 temp_ast.append_node(FuncDefNode("fwritelines", ["fname", "finput"]))
-temp_ast.cur_node.children[13].arg_types = [("str",), ("list",)]
-temp_ast.cur_node.children[13].return_type = ("none",)
+temp_ast.cur_node.children[11].arg_types = [("str",), ("list",)]
+temp_ast.cur_node.children[11].return_type = ("none",)
 temp_ast.append_node(FuncDefNode("exit", ["exit_code"]))
-temp_ast.cur_node.children[14].arg_types = [("int",)]
-temp_ast.cur_node.children[14].return_type = ("none",)
+temp_ast.cur_node.children[12].arg_types = [("int",)]
+temp_ast.cur_node.children[12].return_type = ("none",)
 temp_ast.append_node(FuncDefNode("list", ["str_input"]))
-temp_ast.cur_node.children[15].arg_types = [("str",)]
-temp_ast.cur_node.children[15].return_type = ("list",)
+temp_ast.cur_node.children[13].arg_types = [("str",)]
+temp_ast.cur_node.children[13].return_type = ("list",)
 temp_ast.append_node(FuncDefNode("os_run", ["command"]))
-temp_ast.cur_node.children[16].arg_types = [("str",)]
-temp_ast.cur_node.children[16].return_type = ("int",)
+temp_ast.cur_node.children[14].arg_types = [("str",)]
+temp_ast.cur_node.children[14].return_type = ("int",)
 temp_ast.append_node(FuncDefNode("sleep", ["duration"]))
-temp_ast.cur_node.children[17].arg_types = [("int", "float")]
-temp_ast.cur_node.children[17].return_type = ("none",)
+temp_ast.cur_node.children[15].arg_types = [("int", "float")]
+temp_ast.cur_node.children[15].return_type = ("none",)
 temp_ast.append_node(FuncDefNode("time", []))
-temp_ast.cur_node.children[18].arg_types = []
-temp_ast.cur_node.children[18].return_type = ("float",)
+temp_ast.cur_node.children[16].arg_types = []
+temp_ast.cur_node.children[16].return_type = ("float",)
 temp_ast.append_node(FuncDefNode("time_str", []))
-temp_ast.cur_node.children[19].arg_types = []
-temp_ast.cur_node.children[19].return_type = ("str",)
+temp_ast.cur_node.children[17].arg_types = []
+temp_ast.cur_node.children[17].return_type = ("str",)
 
 BUILT_IN_FUNC_NAMES = [
     "print",

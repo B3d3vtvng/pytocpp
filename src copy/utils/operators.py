@@ -4,11 +4,11 @@ Also contains a map specifying which expression to check for in the Parser
 """
 
 BINOP_OPERATOR_PRECEDENCE_DICT = {
-    "TT_plus": 1,
-    "TT_sub": 1,
-    "TT_mul": 2,
-    "TT_div": 2,
-    "TT_mod": 2
+    "TT_plus": 2,
+    "TT_sub": 2,
+    "TT_mul": 1,
+    "TT_div": 1,
+    "TT_mod": 1
 }
 
 CONDITION_OPERATOR_PRECEDENCE_DICT = {

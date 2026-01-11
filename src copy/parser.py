@@ -452,7 +452,7 @@ class Parser():
         line = line[1:len(line)-2]
         if not isinstance(self.ast.cur_node, ElseNode):
             line = self.merge_equ(line)
-            if self.parse_expression(line, "condition", cur_ln_num, expr_4=False, expr_7=False) == -1: return -1
+            if self.parse_expression(line, "condition", cur_ln_num, expr_4=False) == -1: return -1
         child_count = self.parse_children(cur_line_indentation, rem_line_tokens)
         self.ast.cur_node.line = cur_ln_num
         self.ast.detraverse_node()
@@ -912,16 +912,16 @@ class Parser():
             return -1
         var_dec_node = self.identifier_manager.get_identifier_node(var_identifier)
         self.ast.cur_node.child_count = var_dec_node.child_count
-        #if not self.is_valid_type(var_dec_node.type, ("str", "list")):
-        #    self.error = TypeError(f"{var_dec_node.type} object is not subscriptable", cur_ln_num, self.file_n)
-        #    return -1
+        if not self.is_valid_type(var_dec_node.type, ("str", "list")):
+            self.error = TypeError(f"{var_dec_node.type} object is not subscriptable", cur_ln_num, self.file_n)
+            return -1
         content_exprs = self.get_content_expressions(tokens[1:])
         if content_exprs == -1: return -1
         tokens = tokens[2:len(tokens)-1]
         new_node_id = self.ast.append_node(ArrayVarNode(var_identifier, tokens[0].ln), traversal_type)
         self.ast.traverse_node_by_id(new_node_id, traversal_type)
         for content_expr in content_exprs:
-            expr_type = self.parse_expression(content_expr, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False, expr_7=False)
+            expr_type = self.parse_expression(content_expr, "content", cur_ln_num, expr_1=False, expr_3=False, expr_8=False)
             if expr_type == -1: return -1
             if not self.is_valid_type(expr_type, ("int",)):
                 self.error = TypeError(f"list indices must be of type int, not {expr_type}", cur_ln_num, self.file_n)
@@ -1034,7 +1034,7 @@ class Parser():
                 self.error = NameError(f"Unknown Identifier: '{name}'", token.ln, self.file_n)
                 return -1
             if name in self.identifier_manager.get_func_identifier_dict():
-                self.error = TypeError("Higher Order functions are not supported.", token.ln, self.file_n)
+                self.error = TypeError("Higher Order functions are not supported. You might be overwriting a built-in function name.", token.ln, self.file_n)
                 return -1
             new_node_id = self.ast.append_node(VarNode(name), traversal_type)
             self.ast.traverse_node_by_id(new_node_id, traversal_type)
@@ -1100,10 +1100,6 @@ class Parser():
         
         Returns a boolean value
         """
-        
-        for type in t1:
-            if isinstance(type, tuple):
-                return True
         
         if t1 == None:
             return True
@@ -1342,7 +1338,7 @@ class Parser():
                     self.error = TypeError("Invalid argument type for function strip()", cur_ln_num, self.file_n)
                     return False
             if len(arg_types) == 2:
-                if self.is_valid_type(arg_types[0], ("str",)) and self.is_valid_type(arg_types[1], ("str",)): return True
+                if self.is_valid_type(arg_types[0], ("str",) and self.is_valid_type(arg_types[1], ("str",))): return True
                 else:
                     self.error = TypeError("Invalid argument type for function strip()", cur_ln_num, self.file_n)
                     return False
