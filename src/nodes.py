@@ -662,7 +662,18 @@ class AST():
 
         Returns the desired node if it is found, otherwise -1
         """
+        if self.cur_node.__class__ in args:
+            return self.cur_node
+
         old_cur_node = self.cur_node
+
+        if isinstance(self.cur_node, ASTBaseNode):
+            if ASTBaseNode in args:
+                return self.cur_node
+            return -1
+        else:
+            self.detraverse_node()
+
         while not isinstance(self.cur_node, ASTBaseNode):
             if isinstance(self.cur_node, tuple(args)):
                 node = self.cur_node

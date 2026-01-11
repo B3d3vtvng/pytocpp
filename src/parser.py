@@ -326,6 +326,9 @@ class Parser():
         line = line[1:len(line)-1]
         args = self.parse_func_def_args(line, cur_ln_num)
         if args == -1: return args
+        if self.ast.get_parent_node(FuncDefNode, WhileLoopNode, ForLoopNode, IfNode, ElifNode, ElseNode) != -1:
+            self.error = SyntaxError("Can only define a function in the global scope or in a class", cur_ln_num, self.file_n)
+            return -1
         new_node_id = self.ast.append_node(FuncDefNode(func_identifier, args))
         self.ast.traverse_node_by_id(new_node_id)
         self.identifier_manager.set_identifier(func_identifier, self.ast.cur_node, force_global=True, is_func=True)

@@ -1,0 +1,27 @@
+Verwendung:
+
+Python Version 1.12+ ist benötigt
+(x) = optionales Flag
+
+python3 main.py (-v) (--log <log-dateiname>) (--show-ast) (--show-tokens) (-o <ausgabe-dateiname>) <eingabe-dateiname>
+
+Erklärung der Flags:
+
+    -v: Verboser Modus, gibt Tokens, AST und interne Fehlermeldungen aus
+    --log: Schreibt Tokens und den AST in die angegebene Datei
+    --show-ast: Gibt den AST aus 
+    --show-tokens: Gibt die generierten Tokens aus
+    -o: Spezifiziert den Namen der Ausgabe-Datei
+
+
+Weitere Kompilierung:
+
+"cc" beschreibt hier den C++ Compiler ihrer Wahl.
+
+cc -std=c++17 -o <gewünschter Dateiname für die auszuführende Datei> -O3 <Name der generierten Datei>
+
+Sie erhalten eine auszuführende Datei.
+
+
+Als erster Test können gerne die Beispielprogramme in Beispiele/ kompiliert werden, nähere Anweisungen dazu finden sie im jeweiligen Beispielprogramm.
+
