@@ -4,22 +4,22 @@ Also contains a map specifying which expression to check for in the Parser
 """
 
 BINOP_OPERATOR_PRECEDENCE_DICT = {
-    "TT_plus": 2,
-    "TT_sub": 2,
-    "TT_mul": 1,
-    "TT_div": 1,
-    "TT_mod": 1
+    "TT_plus": 1,
+    "TT_sub": 1,
+    "TT_mul": 2,
+    "TT_div": 2,
+    "TT_mod": 2
 }
 
 CONDITION_OPERATOR_PRECEDENCE_DICT = {
-    "TT_greater": 2,
-    "TT_less": 2,
-    "TT_gequ": 2,
-    "TT_lequ": 2,
-    "TT_dequ": 2,
-    "TT_nequ": 2,
-    "TT_and": 1,
-    "TT_or": 1,
+    "TT_greater": 1,
+    "TT_less": 1,
+    "TT_gequ": 1,
+    "TT_lequ": 1,
+    "TT_dequ": 1,
+    "TT_nequ": 1,
+    "TT_and": 2,
+    "TT_or": 2,
 }
 
 SLICE_OPERATOR_PRECEDENCE_DICT = {

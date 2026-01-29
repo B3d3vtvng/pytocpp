@@ -18,7 +18,7 @@ class Error():
         self.file_n = file_n
 
     def __str__(self):
-        return f"\n{self.file_n}:{self.error_ln}  {self.error_t}: {self.error_v}\n"
+        return f"\n{self.file_n}:{self.error_ln}:  {self.error_t}: {self.error_v}\n"
     
 
 class Warning(Error):
